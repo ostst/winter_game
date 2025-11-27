@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Winter Quest: Fast Garland</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ОСНОВНОЙ СТИЛЬ --- */
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Nunito', sans-serif; background-color: #dff9fb; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .snowflake { position: fixed; top: -10px; z-index: 9999; pointer-events: none; color: #fff; opacity: 0.9; animation: fall linear infinite; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
+        @keyframes fall { to { transform: translateY(110vh); } }
+
+        /* UI */
+        #ui-header {
+            position: absolute; top: 15px; left: 15px; right: 15px; height: 60px;
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px);
+            border: 2px solid #fff; border-radius: 20px;
+            z-index: 100; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        #lives-container { display: flex; gap: 6px; align-items: center; }
+        .life-icon { width: 32px; height: 32px; background-image: url('img/heart.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 3px 2px rgba(0,0,0,0.15)); }
+        #certs-container { display: flex; gap: 8px; }
+        .mini-cert { width: 30px; height: 30px; background-color: rgba(255,255,255,0.6); border-radius: 50%; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; transition: all 0.4s; }
+        .cert-img { width: 20px; height: 20px; background-image: url('img/cert.png'); background-size: contain; background-repeat: no-repeat; background-position: center; opacity: 0.3; filter: grayscale(100%); transition: 0.5s; }
+        .mini-cert.collected { background: #fff; box-shadow: 0 0 0 2px #ffd700; transform: scale(1.15); border-color: #fff; }
+        .mini-cert.collected .cert-img { opacity: 1; filter: none; }
+
+        /* КАРТА */
+        #game-map {
+            position: relative; width: 100%; height: 100vh; max-width: 600px; margin: 0 auto;
+            background-image: url('img/map2.png'); background-size: 100% 100%; background-position: center; overflow: hidden;
+            box-shadow: 0 0 50px rgba(135, 206, 250, 0.5);
+        }
+
+        /* ЗОНЫ КЛИКА */
+        .click-zone { position: absolute; cursor: pointer; z-index: 50; background: transparent; }
+        #main-zone { top: 0%; left: 28%; width: 43%; height: 32%; }
+        #b1 { top: 64%; left: 36%; width: 29%; height: 18%; } 
+        #b2 { top: 53%; left: -1%; width: 30%; height: 19%; }
+        #b3 { top: 53%; left: 71%; width: 29%; height: 18%; }
+        #b4 { top: 27%; left: 64%; width: 32%; height: 18%; }
+        #b5 { top: 24%; left: 5%; width: 32%; height: 20%; }
+        #tree-zone { width: 120px; height: 140px; top: 45%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; }
+
+        /* НАКЛАДКИ */
+        .dark-house-overlay {
+            position: absolute; width: 100%; height: 100%;
+            background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+            transition: opacity 1s ease; pointer-events: none; opacity: 1; z-index: 1;
+        }
+        .click-zone.completed .dark-house-overlay { opacity: 0; }
+        
+        .click-zone::after { 
+            content: '❄️'; font-size: 32px; position: absolute; top: 10%; left: 50%; transform: translateX(-50%); 
+            animation: bounce 2s infinite ease-in-out; filter: drop-shadow(0 0 5px #fff); pointer-events: none; 
+            transition: opacity 0.5s; z-index: 15;
+        }
+        .click-zone.completed::after { opacity: 0; } 
+        @keyframes bounce { 0%, 100% { transform: translate(-50%, -10px); } 50% { transform: translate(-50%, -25px); } }
+
+        #main-zone::after { 
+            content: '🏆'; font-size: 40px; position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+            animation: pulseIcon 2s infinite; opacity: 0; transition: opacity 1s; filter: drop-shadow(0 0 10px gold); pointer-events: none;
+        }
+        #main-zone.completed::after { opacity: 1; }
+        @keyframes pulseIcon { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.2); } }
+
+        /* ГЕРОЙ */
+        #hero {
+            position: absolute; width: 90px; height: 90px;
+            background-image: url('img/hero.png'); background-size: contain; background-repeat: no-repeat; background-position: bottom center;
+            top: 93%; left: 50%; transform: translate(-50%, -50%); 
+            z-index: 60; 
+            transition: top 0.5s linear, left 0.5s linear;
+            filter: drop-shadow(0 10px 5px rgba(0,0,0,0.3)); pointer-events: none;
+        }
+        .hero-flip { transform: translate(-50%, -50%) scaleX(-1) !important; }
+        #flying-item { position: absolute; width: 40px; height: 40px; background-image: url('img/cert.png'); background-size: contain; background-repeat: no-repeat; display: none; z-index: 70; filter: drop-shadow(0 0 10px gold); pointer-events: none; }
+
+
+        /* --- МОДАЛКИ --- */
+        #modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(20, 35, 50, 0.8);
+            backdrop-filter: blur(6px); z-index: 200; 
+            justify-content: center; align-items: center; 
+        }
+
+        .modal-content { 
+            position: relative;
+            background-color: #FFFBF5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            padding: 20px; padding-top: 45px;
+            width: 85%; max-width: 340px; text-align: center; 
+            border: 8px solid #fff; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1);
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+        .modal-header-ribbon {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: #ff4757; color: white; padding: 8px 30px; border-radius: 8px;
+            font-family: 'Fredoka', sans-serif; font-size: 24px;
+            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); white-space: nowrap; z-index: 5;
+        }
+        .modal-header-ribbon::before { content: ''; position: absolute; top: 10px; left: -10px; border-right: 10px solid #c0392b; border-top: 10px solid transparent; border-bottom: 10px solid transparent; z-index: -1; }
+        .modal-header-ribbon::after { content: ''; position: absolute; top: 10px; right: -10px; border-left: 10px solid #c0392b; border-top: 10px solid transparent; border-bottom: 10px solid transparent; z-index: -1; }
+
+        .modal-content h3 { display: none; }
+        .modal-content p { color: #57606f; font-size: 17px; margin: 15px 0 20px 0; font-weight: 700; line-height: 1.4; }
+
+        .close-btn-candy {
+            position: absolute; top: -25px; right: -25px; width: 44px; height: 44px;
+            background: radial-gradient(circle at 30% 30%, #ff6b81, #c0392b);
+            border-radius: 50%; border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; z-index: 10;
+            display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px;
+            transition: transform 0.2s;
+        }
+        .close-btn-candy::before { content: '×'; padding-bottom: 4px; }
+        .close-btn-candy:active { transform: scale(0.9); }
+
+        .modal-btn { display: block; width: 100%; padding: 16px; margin-top: 15px; background: #74b9ff; color: #fff; border: none; border-radius: 12px; font-family: 'Fredoka', sans-serif; font-size: 18px; box-shadow: 0 6px 0 #0984e3; cursor: pointer; position: relative; top: 0; transition: 0.1s; }
+        .modal-btn:active { top: 6px; box-shadow: 0 0 0 #0984e3; }
+        .error-btn { background: #ff7675; box-shadow: 0 6px 0 #d63031; }
+        .error-btn:active { box-shadow: 0 0 0 #d63031; }
+        .holiday-btn { background: #fdcb6e; color: #634205; box-shadow: 0 6px 0 #e1b12c; }
+        .holiday-btn:active { box-shadow: 0 0 0 #e1b12c; }
+
+        /* --- ИГРА №2: ЛОВЕЦ (ГИРЛЯНДА ВВЕРХУ) --- */
+        #falling-game-area { 
+            position: relative; width: 100%; height: 300px; 
+            background: #2d3436; border-radius: 12px; 
+            overflow: hidden; margin-bottom: 10px; border: 4px solid #dfe6e9; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5); 
+        }
+        /* Ограничиваем высоту гирлянды и прижимаем к верху */
+        #garland-container {
+            position: absolute; top: 0; left: 0; 
+            width: 100%; height: 80px; /* Высота полоски гирлянды */
+            z-index: 10; pointer-events: none;
+        }
+        .garland-layer {
+            position: absolute; top: 0; left: 0; 
+            width: 100%; height: 100%;
+            object-fit: contain; 
+            object-position: top center; /* Прижимаем к верхнему краю */
+            background-repeat: no-repeat;
+        }
+        /* Слой с включенными огнями: переход стал 0.1s */
+        #garland-on { opacity: 0; transition: opacity 0.1s ease; }
+
+        .falling-item { 
+            position: absolute; width: 85px; height: 85px; 
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            cursor: pointer; top: -90px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); z-index: 5;
+            touch-action: none;
+        }
+
+        /* ИГРА №5: ЛЕДЯНОЙ КОД */
+        #ice-game-area { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+        .ice-cube {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #81ecec 100%);
+            border: 2px solid #fff; border-radius: 12px;
+            color: #0984e3; font-weight: 800; font-size: 24px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s; font-family: 'Fredoka', sans-serif;
+        }
+        .ice-cube.correct { background: #00b894; color: white; border-color: #55efc4; pointer-events: none; transform: scale(1.1); }
+        .ice-cube:active { transform: scale(0.95); }
+        #ice-target-word { font-size: 22px; font-weight: bold; color: #2d3436; margin-bottom: 10px; font-family: 'Fredoka', sans-serif; }
+
+        /* Память */
+        #memory-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .mem-card { 
+            height: 80px; 
+            background-image: url('img/ice_card.png'); background-size: 100% 100%; background-color: transparent;
+            border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; 
+            font-size: 14px; color: transparent; font-weight: bold; transform: rotateY(180deg); transition: 0.4s; border: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+        }
+        .mem-card.flipped { background-image: none; background-color: #fff; color: #2d3436; transform: rotateY(0deg); border: 2px solid #b2bec3; }
+        .mem-card.matched { background: #00b894; opacity: 0; pointer-events: none; transform: scale(1.1); }
+        
+        /* ПАЗЛ */
+        #puzzle-area { width: 240px; height: 240px; position: relative; margin: 15px auto; background: #dfe6e9; border-radius: 10px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+        .puzzle-tile { width: 78px; height: 78px; position: absolute; background-size: 240px 240px; border: 1px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s ease; }
+        
+        /* БИТВА */
+        .battle-card { 
+            background: #fff; border: 2px solid #ced6e0; border-radius: 12px; padding: 16px; margin: 12px 0; 
+            cursor: pointer; text-align: left; box-shadow: 0 4px 0 #ced6e0; 
+            font-family: 'Nunito', sans-serif; font-weight: 700; color: #2d3436; font-size: 16px; transition: 0.1s; 
+        }
+        .battle-card:active { transform: translateY(4px); box-shadow: none; }
+
+    </style>
+</head>
+<body>
+
+    <div id="snow-container"></div>
+
+    <div id="ui-header">
+        <div id="certs-container">
+            <div id="mini-1" class="mini-cert"><div class="cert-img"></div></div>
+            <div id="mini-2" class="mini-cert"><div class="cert-img"></div></div>
+            <div id="mini-3" class="mini-cert"><div class="cert-img"></div></div>
+            <div id="mini-4" class="mini-cert"><div class="cert-img"></div></div>
+            <div id="mini-5" class="mini-cert"><div class="cert-img"></div></div>
+        </div>
+        <div id="lives-container">
+            <div class="life-icon"></div><div class="life-icon"></div><div class="life-icon"></div>
+        </div>
+    </div>
+
+    <div id="flying-item"></div>
+
+    <div id="game-map">
+        <div id="main-zone" class="click-zone" onclick="navigateAndPlay('main')"><div class="dark-house-overlay" style="background-image: url('img/main_off.png');"></div></div>
+        <div id="tree-zone" class="click-zone" onclick="navigateAndPlay('tree')"></div>
+        <div id="b1" class="click-zone" onclick="navigateAndPlay('h1')"><div class="dark-house-overlay" style="background-image: url('img/h1_off.png');"></div></div> 
+        <div id="b2" class="click-zone" onclick="navigateAndPlay('h2')"><div class="dark-house-overlay" style="background-image: url('img/h2_off.png');"></div></div>
+        <div id="b3" class="click-zone" onclick="navigateAndPlay('h3')"><div class="dark-house-overlay" style="background-image: url('img/h3_off.png');"></div></div>
+        <div id="b4" class="click-zone" onclick="navigateAndPlay('h4')"><div class="dark-house-overlay" style="background-image: url('img/h4_off.png');"></div></div>
+        <div id="b5" class="click-zone" onclick="navigateAndPlay('h5')"><div class="dark-house-overlay" style="background-image: url('img/h5_off.png');"></div></div>
+        <div id="hero"></div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content" id="modal-content-wrapper">
+            <div class="close-btn-candy" onclick="closeModal()"></div>
+            <div id="modal-inner"></div>
+        </div>
+    </div>
+
+    <script>
+        function createSnow(){const c=document.getElementById('snow-container');setInterval(()=>{const s=document.createElement('div');s.className='snowflake';s.innerText=['❄','❅','❆','•'][Math.floor(Math.random()*4)];s.style.left=Math.random()*100+'vw';s.style.animationDuration=Math.random()*3+2+'s';s.style.fontSize=Math.random()*10+10+'px';c.appendChild(s);setTimeout(()=>s.remove(),5000);},200);}createSnow();
+        let tg;let userName="Гость";try{if(window.Telegram&&window.Telegram.WebApp){tg=window.Telegram.WebApp;tg.expand();if(tg.initDataUnsafe?.user)userName=tg.initDataUnsafe.user.first_name;}else throw Error();}catch(e){tg={showAlert:alert,HapticFeedback:{notificationOccurred:()=>{},selectionChanged:()=>{}},close:()=>{}};}
+        let isMoving = false; let completedHouses = new Set(); let lives = 3; const TOTAL_HOUSES = 5;
+        const coords = { start: { top: 93, left: 50 }, h1: { top: 82, left: 37 }, h2: { top: 71, left: 28 }, h3: { top: 71, left: 72 }, h4: { top: 46, left: 70 }, h5: { top: 46, left: 30 }, tree: { top: 62, left: 50 }, main: { top: 33, left: 55 }, hub_low: { top: 80, left: 50 }, hub_mid: { top: 62, left: 50 } };
+        const graph = { 'start': ['h1'], 'h1': ['start', 'hub_low'], 'hub_low': ['h1', 'h2', 'h3'], 'h2': ['hub_low', 'hub_mid'], 'h3': ['hub_low', 'hub_mid'], 'hub_mid': ['h2', 'h3', 'h4', 'h5', 'tree'], 'tree': ['hub_mid'], 'h4': ['hub_mid', 'main'], 'h5': ['hub_mid', 'main'], 'main': ['h4', 'h5'] };
+        let currentLoc = 'start';
+
+        function findPath(startNode, endNode) { if (startNode === endNode) return []; let queue = [[startNode]]; let visited = new Set(); visited.add(startNode); while (queue.length > 0) { let path = queue.shift(); let node = path[path.length - 1]; if (node === endNode) return path.slice(1); if (graph[node]) { for (let neighbor of graph[node]) { if (!visited.has(neighbor)) { visited.add(neighbor); queue.push([...path, neighbor]); } } } } return []; }
+
+        async function navigateAndPlay(targetId) { 
+            if (isMoving) return; 
+            if (targetId.startsWith('h')) { const num = parseInt(targetId.replace('h','')); if (completedHouses.has(num)) { tg.showAlert("Свет уже горит! 💡"); return; } } 
+            if (targetId === 'main' && completedHouses.size < TOTAL_HOUSES) { tg.showAlert(`Собери еще снежинки: ${completedHouses.size}/${TOTAL_HOUSES}`); return; } 
+            isMoving = true; const hero = document.getElementById('hero'); const pathKeys = findPath(currentLoc, targetId); 
+            for (let key of pathKeys) { const pos = coords[key]; const heroRect = hero.getBoundingClientRect(); const mapRect = document.getElementById('game-map').getBoundingClientRect(); const heroX = ((heroRect.left - mapRect.left + heroRect.width/2) / mapRect.width) * 100; if (pos.left < heroX) hero.classList.add('hero-flip'); else if (pos.left > heroX) hero.classList.remove('hero-flip'); hero.style.top = pos.top + '%'; hero.style.left = pos.left + '%'; await new Promise(r => setTimeout(r, 500)); } 
+            currentLoc = targetId; isMoving = false; 
+            setTimeout(() => { if (targetId.startsWith('h')) openQuiz(parseInt(targetId.replace('h',''))); else if (targetId === 'tree') showHolidayGreeting(); else if (targetId === 'main') showWinModal(); }, 100); 
+        }
+
+        const battleRounds = [
+            { q: "Раунд 1/3: Фото кота", bad: "Кот в космосе", good: "Рыжий кот в скафандре, космос, звезды, 8k, реализм", c: "good" },
+            { q: "Раунд 2/3: Портрет", bad: "Человек, лицо", good: "Портрет девушки, мягкий свет, студийное фото", c: "good" },
+            { q: "Раунд 3/3: Пейзаж", bad: "Горы и река, красиво", good: "Альпийские горы, горная река, закат, детально, 4k", c: "good" }
+        ]; 
+        let battleIndex=0;
+
+        const memoryPairs = [{name:"Sora",t:"Video"},{name:"MJ",t:"Image"},{name:"GPT",t:"Text"}]; let flippedCards=[], matchedCount=0;
+        
+        /* ЛОВЕЦ */
+        let fallingInterval, fallingScore=0, fallingSpeed=1000; const TARGET_SCORE=20;
+        
+        const PUZZLE_IMAGE_URL="img/puzzle.png"; let puzzleState=[];
+        
+        /* ЗАГАДКИ */
+        const iceLevels = [
+            { q: "Что пишет кодер?", a: "CODE" },
+            { q: "Точка на экране?", a: "PIXEL" },
+            { q: "Цифровое топливо?", a: "DATA" },
+            { q: "Механический друг?", a: "ROBOT" },
+            { q: "Вход в систему?", a: "LOGIN" }
+        ];
+        let currentIceWord = ""; let iceIndex = 0; let iceRound = 0; const ICE_ROUNDS = 3;
+
+        const quizData = { 1: { type: "battle" }, 2: { type: "falling" }, 3: { type: "puzzle" }, 4: { type: "memory" }, 5: { type: "iceCode" } };
+
+        function showHolidayGreeting() { document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Поздравление</div><div style="font-size:50px; margin-top:15px">🎄</div><h2 style="color:#c0392b">С Новым Годом!</h2><p>Пусть твои идеи сбываются!</p><button class="modal-btn holiday-btn" onclick="closeModal()">Спасибо!</button>`; document.getElementById('modal').style.display="flex"; tg.HapticFeedback.notificationOccurred('success'); }
+        
+        function showWinModal() { 
+            document.getElementById('main-zone').classList.add('completed');
+            document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Финал</div><div style="font-size:50px; margin-top:15px">🏆</div><h2 style="color:#2980b9">ПОБЕДА!</h2><p>${userName}</p><p>PROMPT MASTER 2025</p><button class="modal-btn" onclick="closeModal()">КРУТО!</button>`; 
+            document.getElementById('modal').style.display="flex"; 
+            tg.HapticFeedback.notificationOccurred('success'); 
+        }
+        
+        function openQuiz(id) { 
+            const m=document.getElementById('modal'), i=document.getElementById('modal-inner'), d=quizData[id]; i.innerHTML=""; 
+            if(d.type==="battle"){battleIndex=0;i.innerHTML=`<div class="modal-header-ribbon">Битва Промптов</div><div style="margin-top:20px" id="battle-area"></div>`;showBattleRound(id);}
+            /* ЛОВЕЦ С ГИРЛЯНДОЙ (КАРТИНКИ НА ВЕСЬ ЭКРАН) */
+            else if(d.type==="falling"){
+                fallingScore=0; fallingSpeed=1000;
+                i.innerHTML=`<div class="modal-header-ribbon">Включи гирлянду</div>
+                             <div id="falling-game-area">
+                                <div id="garland-container">
+                                    <img src="img/garland_off.png" class="garland-layer" id="garland-off">
+                                    <img src="img/garland_on.png" class="garland-layer" id="garland-on">
+                                </div>
+                             </div>
+                             <button class="modal-btn error-btn" onclick="stopFallingGame()">Хватит ловить ❄️</button>`;
+                startFallingGame(id);
+            } 
+            else if(d.type==="puzzle"){i.innerHTML=`<div class="modal-header-ribbon">Пазл</div><div id="puzzle-area"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду греться 🔥</button>`;initPuzzle(id);}
+            else if(d.type==="memory"){i.innerHTML=`<div class="modal-header-ribbon">Пары</div><div id="memory-grid"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду за молоком 🍪</button>`;initMemory(id);}
+            else if(d.type==="iceCode"){
+                iceRound = 0;
+                i.innerHTML=`<div class="modal-header-ribbon">Ледяной Код</div><div id="ice-target-word"></div><div id="ice-game-area"></div>`;
+                startIceGame(id);
+            } 
+            m.style.display="flex"; 
+        }
+        
+        function closeModal() { clearInterval(fallingInterval); document.getElementById('modal').style.display='none'; }
+        
+        function showBattleRound(id){
+            if(battleIndex>=battleRounds.length){winGame(id);return;}
+            const r=battleRounds[battleIndex];
+            const a=document.getElementById('battle-area');
+            const s=Math.random()<0.5;
+            a.innerHTML=`
+                <p style="font-size:18px; font-weight:bold;">${r.q}</p>
+                <p style="font-size:14px; color:#7f8c8d; margin-bottom:15px;">Какой промпт лучше?</p>
+                <div class="battle-card" onclick="cB('${s?"good":"bad"}',${id})">${s?r.good:r.bad}</div>
+                <div class="battle-card" onclick="cB('${s?"bad":"good"}',${id})">${s?r.bad:r.good}</div>
+            `;
+        } 
+        function cB(v,id){if(v==="good"){battleIndex++;showBattleRound(id);}else{loseLife();closeModal();}}
+        
+        /* --- ЛОВЕЦ (КАРТИНКИ ГИРЛЯНДЫ) --- */
+        function startFallingGame(id){const a=document.getElementById('falling-game-area');fallingInterval=setInterval(()=>sF(a,id),fallingSpeed);} 
+        function sF(a,id){
+            if(document.getElementById('modal').style.display==='none'){ clearInterval(fallingInterval); return; }
+            const i=document.createElement('div');
+            i.className='falling-item';
+            const isBad = Math.random() < 0.3;
+            const goodImgs = ['img/good1.png', 'img/good2.png', 'img/good3.png', 'img/good4.png', 'img/good5.png', 'img/good6.png', 'img/good7.png', 'img/good8.png'];
+            const badImgs = ['img/bad1.png', 'img/bad2.png'];
+            if(isBad) {
+                const randomImg = badImgs[Math.floor(Math.random() * badImgs.length)];
+                i.style.backgroundImage = `url('${randomImg}')`;
+            } else {
+                const randomImg = goodImgs[Math.floor(Math.random() * goodImgs.length)];
+                i.style.backgroundImage = `url('${randomImg}')`;
+            }
+            const maxX = a.clientWidth - 85; 
+            i.style.left = Math.random() * maxX + 'px';
+            i.onmousedown = i.ontouchstart = (e) => {
+                e.preventDefault(); clearInterval(i.dataset.t); i.remove();
+                if(isBad){ 
+                    fallingScore=0; fallingSpeed=1000; 
+                    document.getElementById('garland-on').style.opacity = 0; // Выключаем свет
+                }
+                else { 
+                    fallingScore++; 
+                    // БЫСТРЫЙ НАБОР ЯРКОСТИ (Корень)
+                    const pct = Math.pow(fallingScore / TARGET_SCORE, 0.6);
+                    document.getElementById('garland-on').style.opacity = pct;
+                    
+                    if(fallingSpeed > 300) fallingSpeed -= 30; 
+                    clearInterval(fallingInterval); fallingInterval = setInterval(()=>sF(a,id), fallingSpeed); 
+                    if(fallingScore >= TARGET_SCORE){ stopFallingGame(); winGame(id); } 
+                }
+            };
+            a.appendChild(i);
+            let p = -90; const s = 3 + (fallingScore * 0.3);
+            const t = setInterval(() => { if(document.getElementById('modal').style.display==='none'){ clearInterval(t); return; } p += s; i.style.top = p + 'px'; if(p > 300) { clearInterval(t); if(i.parentNode) i.remove(); } }, 20); i.dataset.t = t;
+        } 
+        function stopFallingGame(){clearInterval(fallingInterval);const items=document.querySelectorAll('.falling-item');items.forEach(i=>i.remove());closeModal();}
+
+        /* --- ЛЕДЯНОЙ КОД: 3 РАУНДА --- */
+        function startIceGame(id) {
+            const round = iceLevels[Math.floor(Math.random() * iceLevels.length)];
+            currentIceWord = round.a; 
+            const questionText = `Раунд ${iceRound+1}/${ICE_ROUNDS}<br>${round.q}`; 
+            iceIndex = 0;
+            let chars = currentIceWord.split('').map((char, i) => ({ char, id: i }));
+            chars.sort(() => Math.random() - 0.5);
+            document.getElementById('ice-target-word').innerHTML = questionText;
+            const area = document.getElementById('ice-game-area');
+            area.innerHTML = '';
+            chars.forEach(item => {
+                let btn = document.createElement('div');
+                btn.className = 'ice-cube';
+                btn.innerText = item.char;
+                btn.onclick = () => {
+                    if (item.char === currentIceWord[iceIndex]) {
+                        btn.classList.add('correct');
+                        iceIndex++;
+                        if (iceIndex === currentIceWord.length) {
+                            setTimeout(() => {
+                                iceRound++;
+                                if(iceRound >= ICE_ROUNDS) {
+                                    winGame(id);
+                                } else {
+                                    startIceGame(id);
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        tg.HapticFeedback.notificationOccurred('error');
+                        btn.style.background = '#ff7675';
+                        setTimeout(() => btn.style.background = '', 300);
+                    }
+                };
+                area.appendChild(btn);
+            });
+        }
+
+        function initPuzzle(id){puzzleState=[0,1,2,3,4,5,6,7,8];let e=8;for(let i=0;i<100;i++){let n=getN(e),r=n[Math.floor(Math.random()*n.length)];[puzzleState[e],puzzleState[r]]=[puzzleState[r],puzzleState[e]];e=r;}renderPuzzle(id);} function getN(i){const n=[];const r=Math.floor(i/3),c=i%3;if(r>0)n.push(i-3);if(r<2)n.push(i+3);if(c>0)n.push(i-1);if(c<2)n.push(i+1);return n;} 
+        function renderPuzzle(id){
+            const el=document.getElementById('puzzle-area');el.innerHTML='';
+            puzzleState.forEach((v,i)=>{
+                if(v===8)return;
+                let t=document.createElement('div');
+                t.className='puzzle-tile';
+                t.style.top=Math.floor(i/3)*80+'px';t.style.left=(i%3)*80+'px';
+                t.style.backgroundImage=`url('${PUZZLE_IMAGE_URL}')`;
+                t.style.backgroundPosition=`-${(v%3)*80}px -${Math.floor(v/3)*80}px`;
+                t.onclick=()=>mT(i,id);el.appendChild(t);
+            });
+        } 
+        function mT(i,id){
+            let e=puzzleState.indexOf(8),n=getN(i);
+            if(n.includes(e)){
+                [puzzleState[i],puzzleState[e]]=[puzzleState[e],puzzleState[i]];
+                renderPuzzle(id);
+                if(puzzleState.every((v,k)=>v===k)) {
+                    document.getElementById('modal-inner').innerHTML = `
+                        <div class="modal-header-ribbon">Ура!</div>
+                        <div style="font-size:50px; margin: 20px 0;">🧩</div>
+                        <h2 style="color:#2d3436;">Собрано!</h2>
+                        <button class="modal-btn error-btn" onclick="winGame(${id})">Отлично!</button>
+                    `;
+                }
+            }
+        }
+
+        function initMemory(id){matchedCount=0;flippedCards=[];let c=[];memoryPairs.forEach(p=>{c.push({v:p.name,id:p.name});c.push({v:p.t,id:p.name});});c.sort(()=>Math.random()-0.5);const g=document.getElementById('memory-grid');g.innerHTML="";c.forEach(x=>{let d=document.createElement('div');d.className='mem-card';d.innerText=x.v;d.dataset.pid=x.id;d.onclick=()=>{if(flippedCards.length>=2||d.classList.contains('flipped'))return;d.classList.add('flipped');flippedCards.push(d);if(flippedCards.length===2){let c1=flippedCards[0],c2=flippedCards[1];if(c1.dataset.pid===c2.dataset.pid){setTimeout(()=>{c1.classList.add('matched');c2.classList.add('matched');flippedCards=[];matchedCount++;if(matchedCount===3)winGame(id);},500);}else{setTimeout(()=>{c1.classList.remove('flipped');c2.classList.remove('flipped');flippedCards=[];},1000);}}};g.appendChild(d);});}
+        
+        function winGame(id) { closeModal(); tg.HapticFeedback.notificationOccurred('success'); document.getElementById('b'+id).classList.add('completed'); animateCertificate(id); }
+        function loseLife(){lives--;updateLivesUI();if(lives<=0){document.getElementById('modal-inner').innerHTML=`<div class="modal-header-ribbon">Упс...</div><h1 style="margin-top:20px">💔</h1><button class="modal-btn error-btn" onclick="location.reload()">Заново</button>`;document.getElementById('modal').style.display='flex';}else{document.getElementById('modal-inner').innerHTML=`<div class="modal-header-ribbon">Ошибка</div><h2 style="color:#c0392b; margin-top:20px">Неверно!</h2><button class="modal-btn" onclick="closeModal()">OK</button>`;document.getElementById('modal').style.display='flex';}tg.HapticFeedback.notificationOccurred('error');}
+        function updateLivesUI(){const c=document.getElementById('lives-container');c.innerHTML='';for(let i=0;i<lives;i++){const h=document.createElement('div');h.className='life-icon';c.appendChild(h);}}
+        function animateCertificate(id){
+            const h=document.getElementById('b'+id)||document.getElementById('main-zone'),f=document.getElementById('flying-item'),r=h.getBoundingClientRect(),t=document.getElementById('mini-'+id).getBoundingClientRect();
+            f.style.display='block';f.style.transition='none';f.style.top=r.top+'px';f.style.left=r.left+'px';
+            setTimeout(()=>{f.style.transition='0.8s';f.style.top=t.top+'px';f.style.left=t.left+'px';f.style.transform='scale(0.5)';},50);
+            setTimeout(()=>{
+                f.style.display='none';f.style.transform='scale(1)';
+                document.getElementById('mini-'+id).classList.add('collected');
+                completedHouses.add(id);
+                if (completedHouses.size === 5) {
+                    document.getElementById('main-zone').classList.add('completed');
+                }
+            },850);
+        }
+    </script>
+</body>
+</html>
