@@ -3,24 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Winter Quest: Fast Garland</title>
+    <title>Winter Quest: Big Title</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <!-- Подключаем шрифты. Ruslan Display - для новогоднего настроения -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&family=Ruslan+Display&display=swap" rel="stylesheet">
     
     <style>
         /* --- ОСНОВНОЙ СТИЛЬ --- */
         body { margin: 0; padding: 0; overflow: hidden; font-family: 'Nunito', sans-serif; background-color: #dff9fb; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .snowflake { position: fixed; top: -10px; z-index: 9999; pointer-events: none; color: #fff; opacity: 0.9; animation: fall linear infinite; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
+        
+        #snow-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30000; }
+        .snowflake { position: absolute; top: -10px; color: #fff; opacity: 0.9; animation: fall linear infinite; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
         @keyframes fall { to { transform: translateY(110vh); } }
 
-        /* UI */
+        /* --- ЗАСТАВКА --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20000;
+            background-image: url('img/splash_bg.jpg'); 
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden;
+            transform-origin: center center;
+            transition: opacity 1s ease-in, transform 1s ease-in; 
+        }
+
+        #splash-screen::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.2) 100%);
+            pointer-events: none; z-index: 1;
+        }
+
+        /* Контейнер интерфейса */
+        .splash-ui-container {
+            position: relative; z-index: 10; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-start;
+            padding-top: 6vh; /* Отступ сверху */
+            transition: opacity 0.3s; 
+        }
+
+        /* ЛОГОТИП-КАРТИНКА (УВЕЛИЧЕННАЯ) */
+        .splash-logo {
+            width: 95%; /* Почти на всю ширину экрана */
+            max-width: 500px; /* Максимальный размер (был 350) */
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+            margin-bottom: 5px;
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+        @keyframes logoFloat { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+
+        /* ПОДПИСЬ "ОТ АКАДЕМИИ ПСБ" (НОВОГОДНИЙ ШРИФТ) */
+        .splash-subtitle {
+            font-family: 'Ruslan Display', cursive; /* Сказочный шрифт */
+            font-size: 26px; /* Увеличенный размер (был 18) */
+            color: #ffffff; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,1); /* Сильная тень для читаемости */
+            margin-bottom: 0;
+            opacity: 1;
+        }
+
+        /* Кнопка "НАЧАТЬ" */
+        .splash-btn {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            color: #fff; font-family: 'Fredoka', sans-serif; font-size: 26px;
+            padding: 16px 70px; border: 2px solid rgba(255,255,255,0.8); border-radius: 50px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(231, 76, 60, 0.6), 0 6px 0 #96281b;
+            text-transform: uppercase; letter-spacing: 2px;
+            transition: transform 0.1s; animation: btnPulse 2s infinite;
+            margin-top: auto; 
+            margin-bottom: 25vh; 
+        }
+        @keyframes btnPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(231, 76, 60, 0.9), 0 6px 0 #96281b; } 100% { transform: scale(1); } }
+        .splash-btn:active { transform: scale(0.95) !important; box-shadow: 0 0 10px rgba(231, 76, 60, 0.4), 0 2px 0 #96281b; }
+
+        #splash-screen.thaw-effect { opacity: 0; transform: scale(2.5); pointer-events: none; }
+        .ui-hidden { opacity: 0; pointer-events: none; }
+
+        /* --- ОКНО ИНСТРУКЦИИ --- */
+        #intro-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(20, 35, 50, 0.8); backdrop-filter: blur(8px); z-index: 25000;
+            justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s;
+        }
+        #intro-modal.show { opacity: 1; }
+
+        .intro-content {
+            background-color: #FFFBF5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            width: 85%; max-width: 360px; text-align: center; 
+            border: 8px solid #fff; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 30px;
+            animation: popUp 0.4s ease;
+        }
+        .intro-title { font-family: 'Ruslan Display', cursive; color: #2980b9; font-size: 28px; margin-bottom: 20px; }
+        .intro-text { font-size: 16px; color: #2d3436; line-height: 1.5; margin-bottom: 15px; font-weight: 600; }
+        .intro-highlight { color: #e74c3c; font-weight: 800; }
+        .intro-btn { 
+            background: #0984e3; color: #fff; font-family: 'Fredoka', sans-serif; font-size: 20px;
+            padding: 12px 40px; border: none; border-radius: 12px; width: 100%;
+            box-shadow: 0 6px 0 #055fa5; cursor: pointer; margin-top: 10px;
+        }
+        .intro-btn:active { transform: translateY(6px); box-shadow: none; }
+
+
+        /* --- ИГРОВОЙ ИНТЕРФЕЙС --- */
         #ui-header {
-            position: absolute; top: 15px; left: 15px; right: 15px; height: 60px;
+            position: absolute; top: -100px; left: 15px; right: 15px; height: 60px;
             background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px);
             border: 2px solid #fff; border-radius: 20px;
             z-index: 100; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        #ui-header.show { top: 15px; }
+
         #lives-container { display: flex; gap: 6px; align-items: center; }
         .life-icon { width: 32px; height: 32px; background-image: url('img/heart.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: drop-shadow(0 3px 2px rgba(0,0,0,0.15)); }
         #certs-container { display: flex; gap: 8px; }
@@ -29,14 +130,11 @@
         .mini-cert.collected { background: #fff; box-shadow: 0 0 0 2px #ffd700; transform: scale(1.15); border-color: #fff; }
         .mini-cert.collected .cert-img { opacity: 1; filter: none; }
 
-        /* КАРТА */
         #game-map {
             position: relative; width: 100%; height: 100vh; max-width: 600px; margin: 0 auto;
             background-image: url('img/map2.png'); background-size: 100% 100%; background-position: center; overflow: hidden;
             box-shadow: 0 0 50px rgba(135, 206, 250, 0.5);
         }
-
-        /* ЗОНЫ КЛИКА */
         .click-zone { position: absolute; cursor: pointer; z-index: 50; background: transparent; }
         #main-zone { top: 0%; left: 28%; width: 43%; height: 32%; }
         #b1 { top: 64%; left: 36%; width: 29%; height: 18%; } 
@@ -44,168 +142,102 @@
         #b3 { top: 53%; left: 71%; width: 29%; height: 18%; }
         #b4 { top: 27%; left: 64%; width: 32%; height: 18%; }
         #b5 { top: 24%; left: 5%; width: 32%; height: 20%; }
-        #tree-zone { width: 120px; height: 140px; top: 45%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; }
+        #tree-zone { width: 120px; height: 140px; top: 45%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 55; }
 
-        /* НАКЛАДКИ */
-        .dark-house-overlay {
-            position: absolute; width: 100%; height: 100%;
-            background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
-            transition: opacity 1s ease; pointer-events: none; opacity: 1; z-index: 1;
-        }
+        .dark-house-overlay { position: absolute; width: 100%; height: 100%; background-size: 100% 100%; background-repeat: no-repeat; background-position: center; transition: opacity 1s ease; pointer-events: none; opacity: 1; z-index: 1; }
         .click-zone.completed .dark-house-overlay { opacity: 0; }
-        
-        .click-zone::after { 
-            content: '❄️'; font-size: 32px; position: absolute; top: 10%; left: 50%; transform: translateX(-50%); 
-            animation: bounce 2s infinite ease-in-out; filter: drop-shadow(0 0 5px #fff); pointer-events: none; 
-            transition: opacity 0.5s; z-index: 15;
-        }
+        .click-zone::after { content: '❄️'; font-size: 32px; position: absolute; top: 10%; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite ease-in-out; filter: drop-shadow(0 0 5px #fff); pointer-events: none; transition: opacity 0.5s; z-index: 15; }
         .click-zone.completed::after { opacity: 0; } 
         @keyframes bounce { 0%, 100% { transform: translate(-50%, -10px); } 50% { transform: translate(-50%, -25px); } }
-
-        #main-zone::after { 
-            content: '🏆'; font-size: 40px; position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
-            animation: pulseIcon 2s infinite; opacity: 0; transition: opacity 1s; filter: drop-shadow(0 0 10px gold); pointer-events: none;
-        }
+        #main-zone::after { content: '🏆'; font-size: 40px; position: absolute; top: 20%; left: 50%; transform: translateX(-50%); animation: pulseIcon 2s infinite; opacity: 0; transition: opacity 1s; filter: drop-shadow(0 0 10px gold); pointer-events: none; }
         #main-zone.completed::after { opacity: 1; }
         @keyframes pulseIcon { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.2); } }
 
-        /* ГЕРОЙ */
-        #hero {
-            position: absolute; width: 90px; height: 90px;
-            background-image: url('img/hero.png'); background-size: contain; background-repeat: no-repeat; background-position: bottom center;
-            top: 93%; left: 50%; transform: translate(-50%, -50%); 
-            z-index: 60; 
-            transition: top 0.5s linear, left 0.5s linear;
-            filter: drop-shadow(0 10px 5px rgba(0,0,0,0.3)); pointer-events: none;
-        }
+        #hero { position: absolute; width: 90px; height: 90px; background-image: url('img/hero.png'); background-size: contain; background-repeat: no-repeat; background-position: bottom center; top: 93%; left: 50%; transform: translate(-50%, -50%); z-index: 60; transition: top 0.5s linear, left 0.5s linear; filter: drop-shadow(0 10px 5px rgba(0,0,0,0.3)); pointer-events: none; }
         .hero-flip { transform: translate(-50%, -50%) scaleX(-1) !important; }
         #flying-item { position: absolute; width: 40px; height: 40px; background-image: url('img/cert.png'); background-size: contain; background-repeat: no-repeat; display: none; z-index: 70; filter: drop-shadow(0 0 10px gold); pointer-events: none; }
 
-
-        /* --- МОДАЛКИ --- */
-        #modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(20, 35, 50, 0.8);
-            backdrop-filter: blur(6px); z-index: 200; 
-            justify-content: center; align-items: center; 
-        }
-
-        .modal-content { 
-            position: relative;
-            background-color: #FFFBF5;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
-            padding: 20px; padding-top: 45px;
-            width: 85%; max-width: 340px; text-align: center; 
-            border: 8px solid #fff; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1);
-            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        /* ИГРОВЫЕ МОДАЛКИ */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 35, 50, 0.8); backdrop-filter: blur(6px); z-index: 200; justify-content: center; align-items: center; }
+        .modal-content { position: relative; background-color: #FFFBF5; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E"); padding: 20px; padding-top: 45px; width: 85%; max-width: 340px; text-align: center; border: 8px solid #fff; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popUp { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-        .modal-header-ribbon {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            background: #ff4757; color: white; padding: 8px 30px; border-radius: 8px;
-            font-family: 'Fredoka', sans-serif; font-size: 24px;
-            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); white-space: nowrap; z-index: 5;
-        }
+        .modal-header-ribbon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #ff4757; color: white; padding: 8px 30px; border-radius: 8px; font-family: 'Fredoka', sans-serif; font-size: 24px; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); white-space: nowrap; z-index: 5; }
         .modal-header-ribbon::before { content: ''; position: absolute; top: 10px; left: -10px; border-right: 10px solid #c0392b; border-top: 10px solid transparent; border-bottom: 10px solid transparent; z-index: -1; }
         .modal-header-ribbon::after { content: ''; position: absolute; top: 10px; right: -10px; border-left: 10px solid #c0392b; border-top: 10px solid transparent; border-bottom: 10px solid transparent; z-index: -1; }
 
-        .modal-content h3 { display: none; }
-        .modal-content p { color: #57606f; font-size: 17px; margin: 15px 0 20px 0; font-weight: 700; line-height: 1.4; }
-
-        .close-btn-candy {
-            position: absolute; top: -25px; right: -25px; width: 44px; height: 44px;
-            background: radial-gradient(circle at 30% 30%, #ff6b81, #c0392b);
-            border-radius: 50%; border: 3px solid #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; z-index: 10;
-            display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px;
-            transition: transform 0.2s;
-        }
+        .game-instruction { color: #57606f; font-size: 15px; margin: 10px 0 15px 0; font-weight: 600; line-height: 1.3; background: #dfe6e9; padding: 10px; border-radius: 10px; }
+        .close-btn-candy { position: absolute; top: -25px; right: -25px; width: 44px; height: 44px; background: radial-gradient(circle at 30% 30%, #ff6b81, #c0392b); border-radius: 50%; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; z-index: 10; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 24px; transition: transform 0.2s; }
         .close-btn-candy::before { content: '×'; padding-bottom: 4px; }
         .close-btn-candy:active { transform: scale(0.9); }
-
         .modal-btn { display: block; width: 100%; padding: 16px; margin-top: 15px; background: #74b9ff; color: #fff; border: none; border-radius: 12px; font-family: 'Fredoka', sans-serif; font-size: 18px; box-shadow: 0 6px 0 #0984e3; cursor: pointer; position: relative; top: 0; transition: 0.1s; }
         .modal-btn:active { top: 6px; box-shadow: 0 0 0 #0984e3; }
         .error-btn { background: #ff7675; box-shadow: 0 6px 0 #d63031; }
         .error-btn:active { box-shadow: 0 0 0 #d63031; }
         .holiday-btn { background: #fdcb6e; color: #634205; box-shadow: 0 6px 0 #e1b12c; }
         .holiday-btn:active { box-shadow: 0 0 0 #e1b12c; }
+        .win-gift-btn { background: #6c5ce7; box-shadow: 0 6px 0 #4834d4; animation: pulseBtn 1.5s infinite; }
+        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* --- ИГРА №2: ЛОВЕЦ (ГИРЛЯНДА ВВЕРХУ) --- */
-        #falling-game-area { 
-            position: relative; width: 100%; height: 300px; 
-            background: #2d3436; border-radius: 12px; 
-            overflow: hidden; margin-bottom: 10px; border: 4px solid #dfe6e9; 
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.5); 
-        }
-        /* Ограничиваем высоту гирлянды и прижимаем к верху */
-        #garland-container {
-            position: absolute; top: 0; left: 0; 
-            width: 100%; height: 80px; /* Высота полоски гирлянды */
-            z-index: 10; pointer-events: none;
-        }
-        .garland-layer {
-            position: absolute; top: 0; left: 0; 
-            width: 100%; height: 100%;
-            object-fit: contain; 
-            object-position: top center; /* Прижимаем к верхнему краю */
-            background-repeat: no-repeat;
-        }
-        /* Слой с включенными огнями: переход стал 0.1s */
-        #garland-on { opacity: 0; transition: opacity 0.1s ease; }
+        #falling-game-area { position: relative; width: 100%; height: 300px; background: #2d3436; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 4px solid #dfe6e9; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
+        #garland-container { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 10; pointer-events: none; }
+        .garland-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: top center; background-repeat: no-repeat; }
+        #garland-on { opacity: 0; transition: opacity 0.1s ease; } 
+        .falling-item { position: absolute; width: 85px; height: 85px; background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; top: -90px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); z-index: 5; touch-action: none; }
+        #catch-score { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-family: 'Fredoka', sans-serif; pointer-events: none; z-index: 20; border: 1px solid rgba(255,255,255,0.3); }
+        .boom-text { position: absolute; color: #ff7675; font-size: 28px; font-weight: 900; font-family: 'Fredoka', sans-serif; pointer-events: none; z-index: 50; text-shadow: 2px 2px 0 #fff; animation: boomAnim 0.5s forwards; }
+        @keyframes boomAnim { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5) translateY(-20px); opacity: 0; } }
 
-        .falling-item { 
-            position: absolute; width: 85px; height: 85px; 
-            background-size: contain; background-repeat: no-repeat; background-position: center;
-            cursor: pointer; top: -90px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); z-index: 5;
-            touch-action: none;
-        }
-
-        /* ИГРА №5: ЛЕДЯНОЙ КОД */
         #ice-game-area { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
-        .ice-cube {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, #e0f7fa 0%, #81ecec 100%);
-            border: 2px solid #fff; border-radius: 12px;
-            color: #0984e3; font-weight: 800; font-size: 24px;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: all 0.2s; font-family: 'Fredoka', sans-serif;
-        }
+        .ice-cube { width: 60px; height: 60px; background: linear-gradient(135deg, #e0f7fa 0%, #81ecec 100%); border: 2px solid #fff; border-radius: 12px; color: #0984e3; font-weight: 800; font-size: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s; font-family: 'Fredoka', sans-serif; }
         .ice-cube.correct { background: #00b894; color: white; border-color: #55efc4; pointer-events: none; transform: scale(1.1); }
         .ice-cube:active { transform: scale(0.95); }
         #ice-target-word { font-size: 22px; font-weight: bold; color: #2d3436; margin-bottom: 10px; font-family: 'Fredoka', sans-serif; }
 
-        /* Память */
         #memory-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .mem-card { 
-            height: 80px; 
-            background-image: url('img/ice_card.png'); background-size: 100% 100%; background-color: transparent;
-            border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; 
-            font-size: 14px; color: transparent; font-weight: bold; transform: rotateY(180deg); transition: 0.4s; border: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
-        }
+        .mem-card { height: 80px; background-image: url('img/ice_card.png'); background-size: 100% 100%; background-color: transparent; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 14px; color: transparent; font-weight: bold; transform: rotateY(180deg); transition: 0.4s; border: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); }
         .mem-card.flipped { background-image: none; background-color: #fff; color: #2d3436; transform: rotateY(0deg); border: 2px solid #b2bec3; }
         .mem-card.matched { background: #00b894; opacity: 0; pointer-events: none; transform: scale(1.1); }
         
-        /* ПАЗЛ */
         #puzzle-area { width: 240px; height: 240px; position: relative; margin: 15px auto; background: #dfe6e9; border-radius: 10px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
         .puzzle-tile { width: 78px; height: 78px; position: absolute; background-size: 240px 240px; border: 1px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s ease; }
         
-        /* БИТВА */
-        .battle-card { 
-            background: #fff; border: 2px solid #ced6e0; border-radius: 12px; padding: 16px; margin: 12px 0; 
-            cursor: pointer; text-align: left; box-shadow: 0 4px 0 #ced6e0; 
-            font-family: 'Nunito', sans-serif; font-weight: 700; color: #2d3436; font-size: 16px; transition: 0.1s; 
-        }
+        .battle-card { background: #fff; border: 2px solid #ced6e0; border-radius: 12px; padding: 16px; margin: 12px 0; cursor: pointer; text-align: left; box-shadow: 0 4px 0 #ced6e0; font-family: 'Nunito', sans-serif; font-weight: 700; color: #2d3436; font-size: 16px; transition: 0.1s; }
         .battle-card:active { transform: translateY(4px); box-shadow: none; }
-
     </style>
 </head>
 <body>
 
+    <!-- ЗАСТАВКА "ЗАМЕРЗШЕЕ ОКНО" -->
+    <div id="splash-screen">
+        <div class="splash-ui-container">
+            <!-- КАРТИНКА ЗАГОЛОВОК (УВЕЛИЧЕНА) -->
+            <img src="img/title.png" alt="Новогодний Квест" class="splash-logo">
+            
+            <!-- ПОДПИСЬ (НОВОГОДНИЙ ШРИФТ, КРУПНЕЕ) -->
+            <div class="splash-subtitle">от Академии ПСБ</div>
+            
+            <button class="splash-btn" onclick="startGame()">НАЧАТЬ</button>
+        </div>
+    </div>
+
+    <!-- ОКНО ИНСТРУКЦИЙ -->
+    <div id="intro-modal">
+        <div class="intro-content">
+            <div class="intro-title">Суть игры 📜</div>
+            <div class="intro-text">
+                Твоя цель — собрать все <span class="intro-highlight">5 конвертов</span>, проходя мини-игры и отвечая на вопросы по Промт-инжинирингу.
+            </div>
+            <div class="intro-text">
+                Зажги свет в каждом домике! Когда выполнишь все задания, на Главном здании загорится <span class="intro-highlight">логотип Академии</span>, и ты получишь Главный Приз! 🎁
+            </div>
+            <button class="intro-btn" onclick="closeIntro()">ПОГНАЛИ! 🚀</button>
+        </div>
+    </div>
+
     <div id="snow-container"></div>
 
+    <!-- ИНТЕРФЕЙС ИГРЫ -->
     <div id="ui-header">
         <div id="certs-container">
             <div id="mini-1" class="mini-cert"><div class="cert-img"></div></div>
@@ -240,12 +272,56 @@
     </div>
 
     <script>
+        // СНЕГ
         function createSnow(){const c=document.getElementById('snow-container');setInterval(()=>{const s=document.createElement('div');s.className='snowflake';s.innerText=['❄','❅','❆','•'][Math.floor(Math.random()*4)];s.style.left=Math.random()*100+'vw';s.style.animationDuration=Math.random()*3+2+'s';s.style.fontSize=Math.random()*10+10+'px';c.appendChild(s);setTimeout(()=>s.remove(),5000);},200);}createSnow();
+        
         let tg;let userName="Гость";try{if(window.Telegram&&window.Telegram.WebApp){tg=window.Telegram.WebApp;tg.expand();if(tg.initDataUnsafe?.user)userName=tg.initDataUnsafe.user.first_name;}else throw Error();}catch(e){tg={showAlert:alert,HapticFeedback:{notificationOccurred:()=>{},selectionChanged:()=>{}},close:()=>{}};}
+        
+        // 1. "НАЧАТЬ": Запускаем оттаивание, показываем игру, а ПОТОМ правила
+        function startGame() {
+            const splash = document.getElementById('splash-screen');
+            const gameUI = document.getElementById('ui-header');
+            
+            document.querySelector('.splash-ui-container').classList.add('ui-hidden');
+            
+            tg.HapticFeedback.notificationOccurred('success');
+
+            splash.classList.add('thaw-effect');
+            gameUI.classList.add('show');
+
+            setTimeout(() => {
+                splash.style.display = 'none';
+                openIntroModal(); // Открываем правила ПОВЕРХ игры
+            }, 1000);
+        }
+
+        // 2. Открыть модалку правил
+        function openIntroModal() {
+            const intro = document.getElementById('intro-modal');
+            intro.style.display = 'flex';
+            setTimeout(() => { intro.classList.add('show'); }, 50);
+        }
+
+        // 3. "ПОГНАЛИ": Просто закрываем правила
+        function closeIntro() {
+            const intro = document.getElementById('intro-modal');
+            intro.classList.remove('show');
+            setTimeout(() => { intro.style.display = 'none'; }, 500);
+        }
+
         let isMoving = false; let completedHouses = new Set(); let lives = 3; const TOTAL_HOUSES = 5;
         const coords = { start: { top: 93, left: 50 }, h1: { top: 82, left: 37 }, h2: { top: 71, left: 28 }, h3: { top: 71, left: 72 }, h4: { top: 46, left: 70 }, h5: { top: 46, left: 30 }, tree: { top: 62, left: 50 }, main: { top: 33, left: 55 }, hub_low: { top: 80, left: 50 }, hub_mid: { top: 62, left: 50 } };
         const graph = { 'start': ['h1'], 'h1': ['start', 'hub_low'], 'hub_low': ['h1', 'h2', 'h3'], 'h2': ['hub_low', 'hub_mid'], 'h3': ['hub_low', 'hub_mid'], 'hub_mid': ['h2', 'h3', 'h4', 'h5', 'tree'], 'tree': ['hub_mid'], 'h4': ['hub_mid', 'main'], 'h5': ['hub_mid', 'main'], 'main': ['h4', 'h5'] };
         let currentLoc = 'start';
+
+        const treeWishes = [
+            "Пусть все ваши идеи сбываются! ✨",
+            "Успехов вам в Новом Году! 🚀",
+            "Реализации всего задуманного! 💡",
+            "Продуктивного года! 📈",
+            "Счастья и тепла! ☕",
+            "Больше крутых промптов! 🤖"
+        ];
 
         function findPath(startNode, endNode) { if (startNode === endNode) return []; let queue = [[startNode]]; let visited = new Set(); visited.add(startNode); while (queue.length > 0) { let path = queue.shift(); let node = path[path.length - 1]; if (node === endNode) return path.slice(1); if (graph[node]) { for (let neighbor of graph[node]) { if (!visited.has(neighbor)) { visited.add(neighbor); queue.push([...path, neighbor]); } } } } return []; }
 
@@ -256,7 +332,7 @@
             isMoving = true; const hero = document.getElementById('hero'); const pathKeys = findPath(currentLoc, targetId); 
             for (let key of pathKeys) { const pos = coords[key]; const heroRect = hero.getBoundingClientRect(); const mapRect = document.getElementById('game-map').getBoundingClientRect(); const heroX = ((heroRect.left - mapRect.left + heroRect.width/2) / mapRect.width) * 100; if (pos.left < heroX) hero.classList.add('hero-flip'); else if (pos.left > heroX) hero.classList.remove('hero-flip'); hero.style.top = pos.top + '%'; hero.style.left = pos.left + '%'; await new Promise(r => setTimeout(r, 500)); } 
             currentLoc = targetId; isMoving = false; 
-            setTimeout(() => { if (targetId.startsWith('h')) openQuiz(parseInt(targetId.replace('h',''))); else if (targetId === 'tree') showHolidayGreeting(); else if (targetId === 'main') showWinModal(); }, 100); 
+            setTimeout(() => { if (targetId.startsWith('h')) openQuiz(parseInt(targetId.replace('h',''))); else if (targetId === 'tree') showTreeWish(); else if (targetId === 'main') showWinModal(); }, 100); 
         }
 
         const battleRounds = [
@@ -267,13 +343,9 @@
         let battleIndex=0;
 
         const memoryPairs = [{name:"Sora",t:"Video"},{name:"MJ",t:"Image"},{name:"GPT",t:"Text"}]; let flippedCards=[], matchedCount=0;
-        
-        /* ЛОВЕЦ */
         let fallingInterval, fallingScore=0, fallingSpeed=1000; const TARGET_SCORE=20;
-        
         const PUZZLE_IMAGE_URL="img/puzzle.png"; let puzzleState=[];
         
-        /* ЗАГАДКИ */
         const iceLevels = [
             { q: "Что пишет кодер?", a: "CODE" },
             { q: "Точка на экране?", a: "PIXEL" },
@@ -283,25 +355,63 @@
         ];
         let currentIceWord = ""; let iceIndex = 0; let iceRound = 0; const ICE_ROUNDS = 3;
 
-        const quizData = { 1: { type: "battle" }, 2: { type: "falling" }, 3: { type: "puzzle" }, 4: { type: "memory" }, 5: { type: "iceCode" } };
+        const quizData = { 
+            1: { type: "battle", desc: "Игра «Битва Промптов»<br>Выберите наиболее качественный и детальный промпт из двух вариантов." }, 
+            2: { type: "falling", desc: "Игра «Гирлянда»<br>Ловите логотипы нейросетей! Избегайте жуков (багов). Соберите 20 очков, чтобы включить свет." }, 
+            3: { type: "puzzle", desc: "Игра «Пазл»<br>Соберите картинку, перемещая плитки в пустую ячейку." }, 
+            4: { type: "memory", desc: "Игра «Пары»<br>Найдите и откройте все подходящие пары карточек (Название - Тип)." }, 
+            5: { type: "iceCode", desc: "Игра «Ледяной код»<br>Угадайте слово и соберите его из ледяных кубиков." } 
+        };
 
-        function showHolidayGreeting() { document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Поздравление</div><div style="font-size:50px; margin-top:15px">🎄</div><h2 style="color:#c0392b">С Новым Годом!</h2><p>Пусть твои идеи сбываются!</p><button class="modal-btn holiday-btn" onclick="closeModal()">Спасибо!</button>`; document.getElementById('modal').style.display="flex"; tg.HapticFeedback.notificationOccurred('success'); }
+        function showTreeWish() {
+            const randomWish = treeWishes[Math.floor(Math.random() * treeWishes.length)];
+            document.getElementById('modal-inner').innerHTML = `
+                <div class="modal-header-ribbon">Пожелание</div>
+                <div style="margin-top:35px; margin-bottom:15px; text-align:center;">
+                    <img src="img/tree_icon.png" style="width: 160px; height: auto; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:80px\'>🎄</div>'">
+                </div>
+                <h2 style="color:#c0392b; margin-top:10px;">С Новым Годом!</h2>
+                <p style="font-size: 20px; color: #2d3436;">${randomWish}</p>
+                <button class="modal-btn holiday-btn" onclick="closeModal()">Спасибо!</button>
+            `; 
+            document.getElementById('modal').style.display="flex"; 
+            tg.HapticFeedback.notificationOccurred('success');
+        }
         
         function showWinModal() { 
             document.getElementById('main-zone').classList.add('completed');
-            document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Финал</div><div style="font-size:50px; margin-top:15px">🏆</div><h2 style="color:#2980b9">ПОБЕДА!</h2><p>${userName}</p><p>PROMPT MASTER 2025</p><button class="modal-btn" onclick="closeModal()">КРУТО!</button>`; 
+            document.getElementById('modal-inner').innerHTML = `
+                <div class="modal-header-ribbon">Финал</div>
+                <div style="font-size:50px; margin-top:15px">🏆</div>
+                <h2 style="color:#2980b9; margin-bottom: 5px;">ПОБЕДА!</h2>
+                <p style="font-size:18px; color: #2d3436;">Поздравляю с победой,<br>Промт-инженер!</p>
+                <p style="font-size:14px; color: #7f8c8d;">Вы собрали все снежинки!</p>
+                <button class="modal-btn win-gift-btn" onclick="getGift()">🎁 Забрать награду</button>
+                <button class="modal-btn" style="margin-top:10px; background:#bdc3c7; color:#fff; box-shadow:none;" onclick="closeModal()">Закрыть</button>
+            `; 
             document.getElementById('modal').style.display="flex"; 
             tg.HapticFeedback.notificationOccurred('success'); 
+        }
+
+        function getGift() {
+            tg.openLink('https://t.me/YourChannel/gift_link'); 
         }
         
         function openQuiz(id) { 
             const m=document.getElementById('modal'), i=document.getElementById('modal-inner'), d=quizData[id]; i.innerHTML=""; 
-            if(d.type==="battle"){battleIndex=0;i.innerHTML=`<div class="modal-header-ribbon">Битва Промптов</div><div style="margin-top:20px" id="battle-area"></div>`;showBattleRound(id);}
-            /* ЛОВЕЦ С ГИРЛЯНДОЙ (КАРТИНКИ НА ВЕСЬ ЭКРАН) */
+            let descHtml = `<div class="game-instruction">${d.desc}</div>`;
+
+            if(d.type==="battle"){
+                battleIndex=0;
+                i.innerHTML=`<div class="modal-header-ribbon">Битва</div>${descHtml}<div style="margin-top:10px" id="battle-area"></div>`;
+                showBattleRound(id);
+            }
             else if(d.type==="falling"){
                 fallingScore=0; fallingSpeed=1000;
-                i.innerHTML=`<div class="modal-header-ribbon">Включи гирлянду</div>
+                i.innerHTML=`<div class="modal-header-ribbon">Гирлянда</div>
+                             ${descHtml}
                              <div id="falling-game-area">
+                                <div id="catch-score">0/20</div>
                                 <div id="garland-container">
                                     <img src="img/garland_off.png" class="garland-layer" id="garland-off">
                                     <img src="img/garland_on.png" class="garland-layer" id="garland-on">
@@ -310,11 +420,11 @@
                              <button class="modal-btn error-btn" onclick="stopFallingGame()">Хватит ловить ❄️</button>`;
                 startFallingGame(id);
             } 
-            else if(d.type==="puzzle"){i.innerHTML=`<div class="modal-header-ribbon">Пазл</div><div id="puzzle-area"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду греться 🔥</button>`;initPuzzle(id);}
-            else if(d.type==="memory"){i.innerHTML=`<div class="modal-header-ribbon">Пары</div><div id="memory-grid"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду за молоком 🍪</button>`;initMemory(id);}
+            else if(d.type==="puzzle"){i.innerHTML=`<div class="modal-header-ribbon">Пазл</div>${descHtml}<div id="puzzle-area"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду греться 🔥</button>`;initPuzzle(id);}
+            else if(d.type==="memory"){i.innerHTML=`<div class="modal-header-ribbon">Пары</div>${descHtml}<div id="memory-grid"></div><button class="modal-btn error-btn" onclick="closeModal()">Пойду за молоком 🍪</button>`;initMemory(id);}
             else if(d.type==="iceCode"){
                 iceRound = 0;
-                i.innerHTML=`<div class="modal-header-ribbon">Ледяной Код</div><div id="ice-target-word"></div><div id="ice-game-area"></div>`;
+                i.innerHTML=`<div class="modal-header-ribbon">Код</div>${descHtml}<div id="ice-target-word"></div><div id="ice-game-area"></div>`;
                 startIceGame(id);
             } 
             m.style.display="flex"; 
@@ -329,14 +439,12 @@
             const s=Math.random()<0.5;
             a.innerHTML=`
                 <p style="font-size:18px; font-weight:bold;">${r.q}</p>
-                <p style="font-size:14px; color:#7f8c8d; margin-bottom:15px;">Какой промпт лучше?</p>
                 <div class="battle-card" onclick="cB('${s?"good":"bad"}',${id})">${s?r.good:r.bad}</div>
                 <div class="battle-card" onclick="cB('${s?"bad":"good"}',${id})">${s?r.bad:r.good}</div>
             `;
         } 
         function cB(v,id){if(v==="good"){battleIndex++;showBattleRound(id);}else{loseLife();closeModal();}}
         
-        /* --- ЛОВЕЦ (КАРТИНКИ ГИРЛЯНДЫ) --- */
         function startFallingGame(id){const a=document.getElementById('falling-game-area');fallingInterval=setInterval(()=>sF(a,id),fallingSpeed);} 
         function sF(a,id){
             if(document.getElementById('modal').style.display==='none'){ clearInterval(fallingInterval); return; }
@@ -355,17 +463,17 @@
             const maxX = a.clientWidth - 85; 
             i.style.left = Math.random() * maxX + 'px';
             i.onmousedown = i.ontouchstart = (e) => {
-                e.preventDefault(); clearInterval(i.dataset.t); i.remove();
+                e.preventDefault(); 
                 if(isBad){ 
+                    showBoom(e.target.offsetLeft, e.target.offsetTop, a);
+                    clearInterval(i.dataset.t); i.remove();
                     fallingScore=0; fallingSpeed=1000; 
-                    document.getElementById('garland-on').style.opacity = 0; // Выключаем свет
+                    updateCatchUI();
                 }
                 else { 
+                    clearInterval(i.dataset.t); i.remove();
                     fallingScore++; 
-                    // БЫСТРЫЙ НАБОР ЯРКОСТИ (Корень)
-                    const pct = Math.pow(fallingScore / TARGET_SCORE, 0.6);
-                    document.getElementById('garland-on').style.opacity = pct;
-                    
+                    updateCatchUI();
                     if(fallingSpeed > 300) fallingSpeed -= 30; 
                     clearInterval(fallingInterval); fallingInterval = setInterval(()=>sF(a,id), fallingSpeed); 
                     if(fallingScore >= TARGET_SCORE){ stopFallingGame(); winGame(id); } 
@@ -375,9 +483,26 @@
             let p = -90; const s = 3 + (fallingScore * 0.3);
             const t = setInterval(() => { if(document.getElementById('modal').style.display==='none'){ clearInterval(t); return; } p += s; i.style.top = p + 'px'; if(p > 300) { clearInterval(t); if(i.parentNode) i.remove(); } }, 20); i.dataset.t = t;
         } 
+
+        function updateCatchUI() {
+            document.getElementById('catch-score').innerText = fallingScore + '/20';
+            const pct = Math.pow(fallingScore / TARGET_SCORE, 0.6); 
+            document.getElementById('garland-on').style.opacity = pct;
+        }
+
+        function showBoom(x, y, container) {
+            const boom = document.createElement('div');
+            boom.className = 'boom-text';
+            boom.innerText = 'БАХ!';
+            boom.style.left = (x + 10) + 'px';
+            boom.style.top = (y + 10) + 'px';
+            container.appendChild(boom);
+            setTimeout(() => boom.remove(), 500);
+            tg.HapticFeedback.notificationOccurred('error');
+        }
+
         function stopFallingGame(){clearInterval(fallingInterval);const items=document.querySelectorAll('.falling-item');items.forEach(i=>i.remove());closeModal();}
 
-        /* --- ЛЕДЯНОЙ КОД: 3 РАУНДА --- */
         function startIceGame(id) {
             const round = iceLevels[Math.floor(Math.random() * iceLevels.length)];
             currentIceWord = round.a; 
