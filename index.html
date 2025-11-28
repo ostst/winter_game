@@ -368,7 +368,7 @@
             document.getElementById('modal-inner').innerHTML = `
                 <div class="modal-header-ribbon">Пожелание</div>
                 <div style="margin-top:35px; margin-bottom:15px; text-align:center;">
-                    <img src="img/tree_icon.png" style="width: 160px; height: auto; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:80px\'>🎄</div>'">
+                    <img src="img/tree_icon.png" style="width: 360px; height: auto; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'font-size:80px\'>🎄</div>'">
                 </div>
                 <h2 style="color:#c0392b; margin-top:10px;">С Новым Годом!</h2>
                 <p style="font-size: 20px; color: #2d3436;">${randomWish}</p>
@@ -452,7 +452,7 @@
             i.className='falling-item';
             const isBad = Math.random() < 0.3;
             const goodImgs = ['img/good1.png', 'img/good2.png', 'img/good3.png', 'img/good4.png', 'img/good5.png', 'img/good6.png', 'img/good7.png', 'img/good8.png'];
-            const badImgs = ['img/bad1.png', 'img/bad2.png'];
+            const badImgs = ['img/bad1.png', 'img/bad1.png'];
             if(isBad) {
                 const randomImg = badImgs[Math.floor(Math.random() * badImgs.length)];
                 i.style.backgroundImage = `url('${randomImg}')`;
