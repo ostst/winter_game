@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Winter Quest: Gold Edition</title>
+    <title>Winter Quest: Final with Socials</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&family=Ruslan+Display&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <style>
         body { margin: 0; padding: 0; overflow: hidden; font-family: 'Nunito', sans-serif; background-color: #dff9fb; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        /* ПРЕЛОАДЕР (Загрузочный экран) */
+        /* ПРЕЛОАДЕР */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50000;
             background: linear-gradient(135deg, #74b9ff, #0984e3);
@@ -40,11 +40,20 @@
         .splash-logo { width: 95%; max-width: 500px; height: auto; filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4)); margin-bottom: 5px; animation: logoFloat 4s ease-in-out infinite; }
         @keyframes logoFloat { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
         .splash-subtitle { font-family: 'Ruslan Display', cursive; font-size: 26px; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(0,0,0,1); margin-bottom: 0; opacity: 1; }
-        .splash-btn { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: #fff; font-family: 'Fredoka', sans-serif; font-size: 26px; padding: 16px 70px; border: 2px solid rgba(255,255,255,0.8); border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px rgba(231, 76, 60, 0.6), 0 6px 0 #96281b; text-transform: uppercase; letter-spacing: 2px; transition: transform 0.1s; animation: btnPulse 2s infinite; margin-top: auto; margin-bottom: 25vh; }
+        
+        .splash-btn { background: linear-gradient(to bottom, #e74c3c, #c0392b); color: #fff; font-family: 'Fredoka', sans-serif; font-size: 26px; padding: 16px 70px; border: 2px solid rgba(255,255,255,0.8); border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px rgba(231, 76, 60, 0.6), 0 6px 0 #96281b; text-transform: uppercase; letter-spacing: 2px; transition: transform 0.1s; animation: btnPulse 2s infinite; margin-top: auto; margin-bottom: 20px; }
         @keyframes btnPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(231, 76, 60, 0.9), 0 6px 0 #96281b; } 100% { transform: scale(1); } }
         .splash-btn:active { transform: scale(0.95) !important; box-shadow: 0 0 10px rgba(231, 76, 60, 0.4), 0 2px 0 #96281b; }
         #splash-screen.thaw-effect { opacity: 0; transform: scale(2.5); pointer-events: none; }
         .ui-hidden { opacity: 0; pointer-events: none; }
+
+        /* СОЦ ИКОНКИ */
+        .social-row { display: flex; gap: 15px; justify-content: center; margin-bottom: 15vh; }
+        .social-icon-btn { width: 44px; height: 44px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; text-decoration: none; border: 2px solid #fff; cursor: pointer; }
+        .social-icon-btn:active { transform: scale(0.9); }
+        .social-icon-btn svg { width: 22px; height: 22px; fill: #2980b9; }
+        /* Специальный класс для модалки, чтобы убрать отступ снизу */
+        .modal-socials { margin-bottom: 0; margin-top: 15px; }
 
         /* ИНСТРУКЦИЯ */
         #intro-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 35, 50, 0.8); backdrop-filter: blur(8px); z-index: 25000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s; }
@@ -67,7 +76,6 @@
         #sound-btn:active { transform: scale(0.9); }
         
         #timer-box { font-family: 'Fredoka', sans-serif; font-size: 20px; color: #2980b9; font-weight: bold; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 10px; }
-        /* Стиль для заблокированного таймера */
         .timer-disabled { background: #dfe6e9 !important; color: #636e72 !important; border: 2px solid #b2bec3; }
 
         #certs-container { display: flex; gap: 8px; }
@@ -182,7 +190,18 @@
         <div class="splash-ui-container">
             <img src="img/title.png" alt="Новогодний Квест" class="splash-logo">
             <div class="splash-subtitle">от Академии ПСБ</div>
+            
             <button class="splash-btn" onclick="startGame()">НАЧАТЬ</button>
+            
+            <!-- КНОПКИ СОЦСЕТЕЙ НА ГЛАВНОМ -->
+            <div class="social-row">
+                <a href="#" onclick="openSocialLink('tg'); return false;" class="social-icon-btn">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82.123l-2.259-1.735-1.089-.868c-.606-.482.308-1.497 1.089-2.278 1.613-1.694 1.591-1.636-.036-1.68-2.324-.063-5.7 2.987-6.768 2.602-.953-.34-1.86-.687-1.86-.687s-.542-.316.357-.724c3.418-1.538 7.577-3.267 10.276-4.257 2.707-1.01 3.276-1.032 3.276-1.032s.271-.023.42.128c.15.151.164.357.164.357s.015.272-.09 1.424z"/></svg>
+                </a>
+                <a href="#" onclick="openSocialLink('web'); return false;" class="social-icon-btn">
+                    <svg viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.183-.443 3.057h-2.551zm-6-3.057h3v3.057h-2.551c-.231-.874-.384-1.914-.443-3.057zm6-5.057v3.057h-3v-3.057h3zm1.703-3.771c.521.996.913 2.268 1.131 3.771h-2.834v-3.982c.626.023 1.21.096 1.703.211zm-8.406.211v3.982h-2.834c.218-1.503.61-2.775 1.131-3.771.493-.115 1.077-.188 1.703-.211zm-1.703 9.829h2.834v3.982c-.626-.023-1.21-.096-1.703-.211-.521-.996-.913-2.268-1.131-3.771zm8.406 3.982v-3.982h2.834c-.218 1.503-.61 2.775-1.131 3.771-.493.115-1.077.188-1.703.211zm4.778-13.79c.856 1.33 1.414 3.004 1.565 4.949h-2.426c-.232-1.285-.622-2.447-1.125-3.431 1.061.41 1.986-1.518 1.986-1.518zm-11.554 0c1.061.41 1.986-1.518 1.986-1.518-.503.984-.893 2.146-1.125 3.431h-2.426c.151-1.945.709-3.619 1.565-4.949zm-2.426 9.808h2.426c.232 1.285.622 2.447 1.125 3.431-1.061-.41-1.986 1.518-1.986 1.518-.856-1.33-1.414-3.004-1.565-4.949zm13.98 0c-.151 1.945-.709 3.619-1.565 4.949-1.061-.41-1.986 1.518-1.986 1.518.503-.984.893-2.146 1.125-3.431h2.426z"/></svg>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -242,9 +261,14 @@
     </div>
 
     <script>
-        // ССЫЛКИ
-        const WINNER_VIDEO_LINK = 'https://kinescope.io/gDpMqhc4YMfD7EWu94s712'; 
-        const SHARE_LINK = 't.me/WinterQuest2025_bot/game';
+        // --- ССЫЛКИ И НАСТРОЙКИ ---
+        const WINNER_VIDEO_LINK = 'https://youtu.be/dQw4w9WgXcQ?si=abcdef'; 
+        const SHARE_LINK = 'https://t.me/WinterQuestBot';
+        
+        // !!! ВСТАВЬТЕ СЮДА ВАШИ ССЫЛКИ !!!
+        const TELEGRAM_CHANNEL_LINK = 'https://t.me/psb_academy'; 
+        const WEBSITE_LINK = 'https://psb-academy.ru';
+        // --------------------------
 
         // ПРЕЛОАДЕР ИЗОБРАЖЕНИЙ
         const imagesToLoad = ['img/splash_bg.jpg', 'img/map2.png', 'img/hero.png', 'img/main_off.png'];
@@ -267,8 +291,14 @@
 
         function createSnow(){const c=document.getElementById('snow-container');setInterval(()=>{const s=document.createElement('div');s.className='snowflake';s.innerText=['❄','❅','❆','•'][Math.floor(Math.random()*4)];s.style.left=Math.random()*100+'vw';s.style.animationDuration=Math.random()*3+2+'s';s.style.fontSize=Math.random()*10+10+'px';c.appendChild(s);setTimeout(()=>s.remove(),5000);},200);}createSnow();
         
-        let tg;let userName="Гость";try{if(window.Telegram&&window.Telegram.WebApp){tg=window.Telegram.WebApp;tg.expand();if(tg.initDataUnsafe?.user)userName=tg.initDataUnsafe.user.first_name;}else throw Error();}catch(e){tg={showAlert:alert,HapticFeedback:{notificationOccurred:()=>{},selectionChanged:()=>{}},close:()=>{},openTelegramLink: (url) => window.open(url, '_blank'), switchInlineQuery: (text) => console.log(text)};}
+        let tg;let userName="Гость";try{if(window.Telegram&&window.Telegram.WebApp){tg=window.Telegram.WebApp;tg.expand();if(tg.initDataUnsafe?.user)userName=tg.initDataUnsafe.user.first_name;}else throw Error();}catch(e){tg={showAlert:alert,HapticFeedback:{notificationOccurred:()=>{},selectionChanged:()=>{}},close:()=>{},openTelegramLink: (url) => window.open(url, '_blank'), switchInlineQuery: (text) => console.log(text), openLink: (url) => window.open(url, '_blank'), sendData: (data) => console.log(data)};}
         
+        // ФУНКЦИЯ ОТКРЫТИЯ СОЦСЕТЕЙ
+        function openSocialLink(type) {
+            if (type === 'tg') tg.openTelegramLink(TELEGRAM_CHANNEL_LINK);
+            else if (type === 'web') tg.openLink(WEBSITE_LINK);
+        }
+
         // ЗВУК И MUTE
         let audioStarted = false;
         let isMuted = localStorage.getItem('wq_muted') === 'true';
@@ -317,10 +347,10 @@
 
         // ТАЙМЕР
         let startTime = 0; let timerInterval;
-        let isGameFinished = false; // Флаг окончания игры
+        let isGameFinished = false; 
 
         function startTimer(){ 
-            if(isGameFinished) return; // Не запускать если пройдено
+            if(isGameFinished) return; 
             if(startTime===0) startTime = Date.now(); 
             timerInterval = setInterval(updateTimer, 1000); 
         }
@@ -353,7 +383,6 @@
             }
             if(isMuted) updateMuteUI();
 
-            // Проверка на завершенность при загрузке
             let finalTime = localStorage.getItem('wq_final_time');
             if (completedHouses.size === 5 || finalTime) {
                 document.getElementById('main-zone').classList.add('completed');
@@ -398,17 +427,13 @@
         async function navigateAndPlay(targetId) { 
             if (isMoving) return; 
             
-            // Если игра пройдена, блокируем открытие домиков, но даем нажать на главное
             if (targetId.startsWith('h') && isGameFinished) { return; } 
 
             if (targetId.startsWith('h')) { const num = parseInt(targetId.replace('h','')); if (completedHouses.has(num)) { tg.showAlert("Свет уже горит! 💡"); return; } } 
             
-            // Если нажали на главное, но еще не прошли всё
             if (targetId === 'main' && completedHouses.size < TOTAL_HOUSES) { tg.showAlert(`Собери еще снежинки: ${completedHouses.size}/${TOTAL_HOUSES}`); return; } 
             
-            // Если нажали на главное и ВСЁ СОБРАНО (Финал)
             if (targetId === 'main' && completedHouses.size === TOTAL_HOUSES) {
-                // Если уже было пройдено ранее - просто показываем модалку
                 if(isGameFinished) { showWinModal(); return; }
             }
 
@@ -418,10 +443,7 @@
                 const pos = coords[key]; const heroRect = hero.getBoundingClientRect(); const mapRect = document.getElementById('game-map').getBoundingClientRect(); const heroX = ((heroRect.left - mapRect.left + heroRect.width/2) / mapRect.width) * 100; 
                 if (pos.left < heroX) hero.classList.add('hero-flip'); else if (pos.left > heroX) hero.classList.remove('hero-flip'); 
                 hero.classList.add('hero-walk'); 
-                
-                // ЗВУК ТОЛЬКО ПРИ ДВИЖЕНИИ
                 playSound('sfx-step'); 
-                
                 hero.style.top = pos.top + '%'; hero.style.left = pos.left + '%'; 
                 await new Promise(r => setTimeout(r, 500)); 
             } 
@@ -431,7 +453,7 @@
             setTimeout(() => { 
                 if (targetId.startsWith('h')) openQuiz(parseInt(targetId.replace('h',''))); 
                 else if (targetId === 'tree') showTreeWish(); 
-                else if (targetId === 'main') playWinSequence(); // ЗАПУСК ФИНАЛА
+                else if (targetId === 'main') playWinSequence(); 
             }, 100); 
         }
 
@@ -442,7 +464,7 @@
         ]; 
         let battleIndex=0;
 
-        const memoryPairs = [{name:"Sora",t:"Video"},{name:"MJ",t:"Image"},{name:"GPT",t:"Text"}]; let flippedCards=[], matchedCount=0;
+        const memoryPairs = [{name:"Sora",t:"Видео"},{name:"Midjerney",t:"Изображение"},{name:"Ghatgpt",t:"Текст"}]; let flippedCards=[], matchedCount=0;
         let fallingInterval, fallingScore=0, fallingSpeed=1000; const TARGET_SCORE=20;
         const PUZZLE_IMAGE_URL="img/puzzle.png"; let puzzleState=[];
         const iceLevels = [{q:"Что пишет кодер?",a:"CODE"},{q:"Точка на экране?",a:"PIXEL"},{q:"Цифровое топливо?",a:"DATA"},{q:"Механический друг?",a:"ROBOT"},{q:"Вход в систему?",a:"LOGIN"}];
@@ -468,19 +490,13 @@
             document.getElementById('modal').style.display="flex"; tg.HapticFeedback.notificationOccurred('success');
         }
         
-        // НОВАЯ ФУНКЦИЯ ДЛЯ АНИМАЦИИ ПЕРЕД МОДАЛКОЙ
         async function playWinSequence() {
             stopTimer(); 
             playSound('sfx-final');
             document.getElementById('main-zone').classList.add('completed');
-            
-            // Салют на карте
             var duration=3000; var end=Date.now()+duration;
             (function frame(){confetti({particleCount:5,angle:60,spread:55,origin:{x:0},colors:['#ff0000','#00ff00','#ffffff','#ffff00']});confetti({particleCount:5,angle:120,spread:55,origin:{x:1},colors:['#ff0000','#00ff00','#ffffff','#ffff00']});if(Date.now()<end){requestAnimationFrame(frame);}}());
-
-            // Ждем 2.5 секунды пока идет салют
             await new Promise(resolve => setTimeout(resolve, 2500));
-            
             showWinModal();
         }
 
@@ -491,7 +507,6 @@
                 finalTime = document.getElementById('timer-box').innerText;
                 localStorage.setItem('wq_final_time', finalTime);
             }
-            // Делаем таймер серым
             document.getElementById('timer-box').classList.add('timer-disabled');
             document.getElementById('timer-box').innerText = finalTime;
 
@@ -502,24 +517,27 @@
                 <p style="font-size:18px; color: #2d3436;">Поздравляю, Промт-инженер!<br>Время: ${finalTime}</p>
                 <button class="modal-btn win-gift-btn" onclick="getGift()">🎁 Забрать награду</button>
                 <button class="modal-btn share-btn" style="margin-top:10px;" onclick="shareResult('${finalTime}')">📢 Похвастаться</button>
+                <div class="social-row modal-socials">
+                    <a href="#" onclick="openSocialLink('tg'); return false;" class="social-icon-btn">
+                        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82.123l-2.259-1.735-1.089-.868c-.606-.482.308-1.497 1.089-2.278 1.613-1.694 1.591-1.636-.036-1.68-2.324-.063-5.7 2.987-6.768 2.602-.953-.34-1.86-.687-1.86-.687s-.542-.316.357-.724c3.418-1.538 7.577-3.267 10.276-4.257 2.707-1.01 3.276-1.032 3.276-1.032s.271-.023.42.128c.15.151.164.357.164.357s.015.272-.09 1.424z"/></svg>
+                    </a>
+                    <a href="#" onclick="openSocialLink('web'); return false;" class="social-icon-btn">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.183-.443 3.057h-2.551zm-6-3.057h3v3.057h-2.551c-.231-.874-.384-1.914-.443-3.057zm6-5.057v3.057h-3v-3.057h3zm1.703-3.771c.521.996.913 2.268 1.131 3.771h-2.834v-3.982c.626.023 1.21.096 1.703.211zm-8.406.211v3.982h-2.834c.218-1.503.61-2.775 1.131-3.771.493-.115 1.077-.188 1.703-.211zm-1.703 9.829h2.834v3.982c-.626-.023-1.21-.096-1.703-.211-.521-.996-.913-2.268-1.131-3.771zm8.406 3.982v-3.982h2.834c-.218 1.503-.61 2.775-1.131 3.771-.493.115-1.077.188-1.703.211zm4.778-13.79c.856 1.33 1.414 3.004 1.565 4.949h-2.426c-.232-1.285-.622-2.447-1.125-3.431 1.061.41 1.986-1.518 1.986-1.518zm-11.554 0c1.061.41 1.986-1.518 1.986-1.518-.503.984-.893 2.146-1.125 3.431h-2.426c.151-1.945.709-3.619 1.565-4.949zm-2.426 9.808h2.426c.232 1.285.622 2.447 1.125 3.431-1.061-.41-1.986 1.518-1.986 1.518-.856-1.33-1.414-3.004-1.565-4.949zm13.98 0c-.151 1.945-.709 3.619-1.565 4.949-1.061-.41-1.986 1.518-1.986 1.518.503-.984.893-2.146 1.125-3.431h2.426z"/></svg>
+                    </a>
+                </div>
                 <button class="modal-btn reset-btn-small" onclick="resetGame()">🔄 Сыграть еще раз</button>
             `; 
             document.getElementById('modal').style.display="flex"; tg.HapticFeedback.notificationOccurred('success'); 
         }
 
-        function getGift() { tg.openLink(WINNER_VIDEO_LINK); }
+        function getGift() { 
+            // Отправляем секретный сигнал боту для получения подарка
+            tg.sendData("prize_requested"); 
+        }
         
-        // НОВЫЙ МЕТОД ШЕРИНГА (INLINE)
         function shareResult(time) { 
             const text = `Я прошел Новогодний Квест от Академии ПСБ за ${time} и стал Промт-инженером! 🎄 Попробуй и ты!`;
-            // Пытаемся использовать нативный инлайн режим для красивой кнопки
-            try {
-                tg.switchInlineQuery(text);
-            } catch(e) {
-                // Если не сработало (бот не настроен), фоллбек на старую ссылку
-                const url = `https://t.me/share/url?url=${SHARE_LINK}&text=${text}`;
-                tg.openTelegramLink(url); 
-            }
+            try { tg.switchInlineQuery(text); } catch(e) { const url = `https://t.me/share/url?url=${SHARE_LINK}&text=${text}`; tg.openTelegramLink(url); }
         }
         
         function openQuiz(id) { 
@@ -561,7 +579,6 @@
                 document.getElementById('battle-feedback-ui').style.display = 'block';
             } else {
                 el.style.background = "#fab1a0"; el.style.border = "2px solid #d63031";
-                // ЗВУК ОШИБКИ УБРАН ИЗ ВИКТОРИНЫ
                 setTimeout(() => { closeModal(); loseLife(); }, 500);
             }
         }
@@ -589,7 +606,6 @@
         function updateCatchUI() { document.getElementById('catch-score').innerText = fallingScore + '/20'; const pct = Math.pow(fallingScore / TARGET_SCORE, 0.6); document.getElementById('garland-on').style.opacity = pct; }
         
         function showBoom(x, y, container) { 
-            // ВОТ ТУТ ОСТАЛСЯ ЗВУК ОШИБКИ
             playSound('sfx-error'); 
             const boom = document.createElement('div'); boom.className = 'boom-text'; boom.innerText = 'БАХ!'; boom.style.left = (x + 10) + 'px'; boom.style.top = (y + 10) + 'px'; container.appendChild(boom); setTimeout(() => boom.remove(), 500); tg.HapticFeedback.notificationOccurred('error'); 
         }
@@ -607,7 +623,7 @@
                     if (item.char === currentIceWord[iceIndex]) {
                         btn.classList.add('correct'); iceIndex++; playSound('sfx-win');
                         if (iceIndex === currentIceWord.length) { setTimeout(() => { iceRound++; if(iceRound >= ICE_ROUNDS) winGame(id); else startIceGame(id); }, 500); }
-                    } else { tg.HapticFeedback.notificationOccurred('error'); btn.style.background = '#ff7675'; /* ЗВУК УБРАН */ setTimeout(() => btn.style.background = '', 300); }
+                    } else { tg.HapticFeedback.notificationOccurred('error'); btn.style.background = '#ff7675'; setTimeout(() => btn.style.background = '', 300); }
                 };
                 area.appendChild(btn);
             });
@@ -623,7 +639,7 @@
         } 
         function mT(i,id){ let e=puzzleState.indexOf(8),n=getN(i); if(n.includes(e)){ [puzzleState[i],puzzleState[e]]=[puzzleState[e],puzzleState[i]]; playSound('sfx-step'); renderPuzzle(id); if(puzzleState.every((v,k)=>v===k)) { document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Ура!</div><div style="font-size:50px; margin: 20px 0;">🧩</div><h2 style="color:#2d3436;">Собрано!</h2><button class="modal-btn error-btn" onclick="winGame(${id})">Отлично!</button>`; playSound('sfx-win'); } } }
 
-        function initMemory(id){matchedCount=0;flippedCards=[];let c=[];memoryPairs.forEach(p=>{c.push({v:p.name,id:p.name});c.push({v:p.t,id:p.name});});c.sort(()=>Math.random()-0.5);const g=document.getElementById('memory-grid');g.innerHTML="";c.forEach(x=>{let d=document.createElement('div');d.className='mem-card';d.innerText=x.v;d.dataset.pid=x.id;d.onclick=()=>{if(flippedCards.length>=2||d.classList.contains('flipped'))return;d.classList.add('flipped');flippedCards.push(d);if(flippedCards.length===2){let c1=flippedCards[0],c2=flippedCards[1];if(c1.dataset.pid===c2.dataset.pid){ playSound('sfx-win'); setTimeout(()=>{c1.classList.add('matched');c2.classList.add('matched');flippedCards=[];matchedCount++;if(matchedCount===3)winGame(id);},500);}else{ /* ЗВУК УБРАН */ setTimeout(()=>{c1.classList.remove('flipped');c2.classList.remove('flipped');flippedCards=[];},1000);}}};g.appendChild(d);});}
+        function initMemory(id){matchedCount=0;flippedCards=[];let c=[];memoryPairs.forEach(p=>{c.push({v:p.name,id:p.name});c.push({v:p.t,id:p.name});});c.sort(()=>Math.random()-0.5);const g=document.getElementById('memory-grid');g.innerHTML="";c.forEach(x=>{let d=document.createElement('div');d.className='mem-card';d.innerText=x.v;d.dataset.pid=x.id;d.onclick=()=>{if(flippedCards.length>=2||d.classList.contains('flipped'))return;d.classList.add('flipped');flippedCards.push(d);if(flippedCards.length===2){let c1=flippedCards[0],c2=flippedCards[1];if(c1.dataset.pid===c2.dataset.pid){ playSound('sfx-win'); setTimeout(()=>{c1.classList.add('matched');c2.classList.add('matched');flippedCards=[];matchedCount++;if(matchedCount===3)winGame(id);},500);}else{ setTimeout(()=>{c1.classList.remove('flipped');c2.classList.remove('flipped');flippedCards=[];},1000);}}};g.appendChild(d);});}
         
         function winGame(id) { closeModal(); tg.HapticFeedback.notificationOccurred('success'); document.getElementById('b'+id).classList.add('completed'); playSound('sfx-win'); animateCertificate(id); }
         function animateCertificate(id){
