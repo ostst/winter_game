@@ -573,7 +573,7 @@
             const i=document.createElement('div'); i.className='falling-item';
             const isBad = Math.random() < 0.3;
             const goodImgs = ['img/good1.png', 'img/good2.png', 'img/good3.png', 'img/good4.png', 'img/good5.png', 'img/good6.png', 'img/good7.png', 'img/good8.png'];
-            const badImgs = ['img/bad1.png', 'img/bad2.png'];
+            const badImgs = ['img/bad1.png', 'img/bad1.png'];
             i.style.backgroundImage = `url('${isBad ? badImgs[Math.floor(Math.random()*badImgs.length)] : goodImgs[Math.floor(Math.random()*goodImgs.length)]}')`;
             const maxX = a.clientWidth - 85; i.style.left = Math.random() * maxX + 'px';
             i.onmousedown = i.ontouchstart = (e) => { e.preventDefault(); 
