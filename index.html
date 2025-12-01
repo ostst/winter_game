@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Winter Quest: Final with Socials</title>
+    <title>Winter Quest: Custom Icons</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&family=Ruslan+Display&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
@@ -49,9 +49,9 @@
 
         /* СОЦ ИКОНКИ */
         .social-row { display: flex; gap: 15px; justify-content: center; margin-bottom: 15vh; }
-        .social-icon-btn { width: 44px; height: 44px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; text-decoration: none; border: 2px solid #fff; cursor: pointer; }
+        .social-icon-btn { width: 50px; height: 50px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; text-decoration: none; border: 2px solid #fff; cursor: pointer; overflow: hidden; padding: 5px; box-sizing: border-box; }
         .social-icon-btn:active { transform: scale(0.9); }
-        .social-icon-btn svg { width: 22px; height: 22px; fill: #2980b9; }
+        .social-icon-btn img { width: 100%; height: 100%; object-fit: contain; display: block; }
         /* Специальный класс для модалки, чтобы убрать отступ снизу */
         .modal-socials { margin-bottom: 0; margin-top: 15px; }
 
@@ -116,7 +116,7 @@
         #flying-item { position: absolute; width: 40px; height: 40px; background-image: url('img/cert.png'); background-size: contain; background-repeat: no-repeat; display: none; z-index: 70; filter: drop-shadow(0 0 10px gold); pointer-events: none; }
 
         /* МОДАЛКИ */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 35, 50, 0.8); backdrop-filter: blur(6px); z-index: 200; justify-content: center; align-items: center; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 35, 50, 0.8); backdrop-filter: blur(6px); z-index: 40000; justify-content: center; align-items: center; }
         .modal-content { position: relative; background-color: #FFFBF5; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E"); padding: 20px; padding-top: 45px; width: 85%; max-width: 340px; text-align: center; border: 8px solid #fff; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1); animation: popUp 0.4s ease; }
         .modal-header-ribbon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #ff4757; color: white; padding: 8px 30px; border-radius: 8px; font-family: 'Fredoka', sans-serif; font-size: 24px; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); white-space: nowrap; z-index: 5; }
         .modal-header-ribbon::before { content: ''; position: absolute; top: 10px; left: -10px; border-right: 10px solid #c0392b; border-top: 10px solid transparent; border-bottom: 10px solid transparent; z-index: -1; }
@@ -132,12 +132,18 @@
         .error-btn:active { box-shadow: 0 0 0 #d63031; }
         .holiday-btn { background: #fdcb6e; color: #634205; box-shadow: 0 6px 0 #e1b12c; }
         .holiday-btn:active { box-shadow: 0 0 0 #e1b12c; }
-        .win-gift-btn { background: #6c5ce7; box-shadow: 0 6px 0 #4834d4; animation: pulseBtn 1.5s infinite; }
+        .win-gift-btn { 
+            background: #6c5ce7; box-shadow: 0 6px 0 #4834d4; 
+            animation: pulseBtn 1.5s infinite; 
+            transform: translateZ(0); 
+            -webkit-font-smoothing: subpixel-antialiased; 
+        }
         @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .share-btn { background: #00cec9; box-shadow: 0 6px 0 #00b894; }
         .reset-btn-small { margin-top:10px; background:#b2bec3; box-shadow:0 6px 0 #636e72; color:#fff; font-size:16px; padding: 10px; }
 
-        #falling-game-area { position: relative; width: 100%; height: 300px; background: #2d3436; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 4px solid #dfe6e9; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
+        /* СВЕТЛО-СИНИЙ ФОН ДЛЯ ИГРЫ ЛОВЕЦ */
+        #falling-game-area { position: relative; width: 100%; height: 300px; background: #74b9ff; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 4px solid #dfe6e9; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
         #garland-container { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 10; pointer-events: none; }
         .garland-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: top center; background-repeat: no-repeat; }
         #garland-on { opacity: 0; transition: opacity 0.1s ease; } 
@@ -196,10 +202,10 @@
             <!-- КНОПКИ СОЦСЕТЕЙ НА ГЛАВНОМ -->
             <div class="social-row">
                 <a href="#" onclick="openSocialLink('tg'); return false;" class="social-icon-btn">
-                    <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82.123l-2.259-1.735-1.089-.868c-.606-.482.308-1.497 1.089-2.278 1.613-1.694 1.591-1.636-.036-1.68-2.324-.063-5.7 2.987-6.768 2.602-.953-.34-1.86-.687-1.86-.687s-.542-.316.357-.724c3.418-1.538 7.577-3.267 10.276-4.257 2.707-1.01 3.276-1.032 3.276-1.032s.271-.023.42.128c.15.151.164.357.164.357s.015.272-.09 1.424z"/></svg>
+                    <img src="img/tg_icon.png" alt="Telegram">
                 </a>
                 <a href="#" onclick="openSocialLink('web'); return false;" class="social-icon-btn">
-                    <svg viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.183-.443 3.057h-2.551zm-6-3.057h3v3.057h-2.551c-.231-.874-.384-1.914-.443-3.057zm6-5.057v3.057h-3v-3.057h3zm1.703-3.771c.521.996.913 2.268 1.131 3.771h-2.834v-3.982c.626.023 1.21.096 1.703.211zm-8.406.211v3.982h-2.834c.218-1.503.61-2.775 1.131-3.771.493-.115 1.077-.188 1.703-.211zm-1.703 9.829h2.834v3.982c-.626-.023-1.21-.096-1.703-.211-.521-.996-.913-2.268-1.131-3.771zm8.406 3.982v-3.982h2.834c-.218 1.503-.61 2.775-1.131 3.771-.493.115-1.077.188-1.703.211zm4.778-13.79c.856 1.33 1.414 3.004 1.565 4.949h-2.426c-.232-1.285-.622-2.447-1.125-3.431 1.061.41 1.986-1.518 1.986-1.518zm-11.554 0c1.061.41 1.986-1.518 1.986-1.518-.503.984-.893 2.146-1.125 3.431h-2.426c.151-1.945.709-3.619 1.565-4.949zm-2.426 9.808h2.426c.232 1.285.622 2.447 1.125 3.431-1.061-.41-1.986 1.518-1.986 1.518-.856-1.33-1.414-3.004-1.565-4.949zm13.98 0c-.151 1.945-.709 3.619-1.565 4.949-1.061-.41-1.986 1.518-1.986 1.518.503-.984.893-2.146 1.125-3.431h2.426z"/></svg>
+                    <img src="img/web_icon.png" alt="Web">
                 </a>
             </div>
         </div>
@@ -262,11 +268,11 @@
 
     <script>
         // --- ССЫЛКИ И НАСТРОЙКИ ---
-        const WINNER_VIDEO_LINK = 'https://youtu.be/dQw4w9WgXcQ?si=abcdef'; 
-        const SHARE_LINK = 'https://t.me/WinterQuestBot';
+        const WINNER_VIDEO_LINK = 'https://kinescope.io/gDpMqhc4YMfD7EWu94s712'; 
+        const SHARE_LINK = 't.me/WinterQuest2025_bot/game';
         
         // !!! ВСТАВЬТЕ СЮДА ВАШИ ССЫЛКИ !!!
-        const TELEGRAM_CHANNEL_LINK = 'https://t.me/psb_academy'; 
+        const TELEGRAM_CHANNEL_LINK = 'https://t.me/AcademyPSB'; 
         const WEBSITE_LINK = 'https://psb-academy.ru';
         // --------------------------
 
@@ -519,10 +525,10 @@
                 <button class="modal-btn share-btn" style="margin-top:10px;" onclick="shareResult('${finalTime}')">📢 Похвастаться</button>
                 <div class="social-row modal-socials">
                     <a href="#" onclick="openSocialLink('tg'); return false;" class="social-icon-btn">
-                        <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82.123l-2.259-1.735-1.089-.868c-.606-.482.308-1.497 1.089-2.278 1.613-1.694 1.591-1.636-.036-1.68-2.324-.063-5.7 2.987-6.768 2.602-.953-.34-1.86-.687-1.86-.687s-.542-.316.357-.724c3.418-1.538 7.577-3.267 10.276-4.257 2.707-1.01 3.276-1.032 3.276-1.032s.271-.023.42.128c.15.151.164.357.164.357s.015.272-.09 1.424z"/></svg>
+                        <img src="img/tg_icon.png" alt="Telegram">
                     </a>
                     <a href="#" onclick="openSocialLink('web'); return false;" class="social-icon-btn">
-                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.183-.443 3.057h-2.551zm-6-3.057h3v3.057h-2.551c-.231-.874-.384-1.914-.443-3.057zm6-5.057v3.057h-3v-3.057h3zm1.703-3.771c.521.996.913 2.268 1.131 3.771h-2.834v-3.982c.626.023 1.21.096 1.703.211zm-8.406.211v3.982h-2.834c.218-1.503.61-2.775 1.131-3.771.493-.115 1.077-.188 1.703-.211zm-1.703 9.829h2.834v3.982c-.626-.023-1.21-.096-1.703-.211-.521-.996-.913-2.268-1.131-3.771zm8.406 3.982v-3.982h2.834c-.218 1.503-.61 2.775-1.131 3.771-.493.115-1.077.188-1.703.211zm4.778-13.79c.856 1.33 1.414 3.004 1.565 4.949h-2.426c-.232-1.285-.622-2.447-1.125-3.431 1.061.41 1.986-1.518 1.986-1.518zm-11.554 0c1.061.41 1.986-1.518 1.986-1.518-.503.984-.893 2.146-1.125 3.431h-2.426c.151-1.945.709-3.619 1.565-4.949zm-2.426 9.808h2.426c.232 1.285.622 2.447 1.125 3.431-1.061-.41-1.986 1.518-1.986 1.518-.856-1.33-1.414-3.004-1.565-4.949zm13.98 0c-.151 1.945-.709 3.619-1.565 4.949-1.061-.41-1.986 1.518-1.986 1.518.503-.984.893-2.146 1.125-3.431h2.426z"/></svg>
+                        <img src="img/web_icon.png" alt="Web">
                     </a>
                 </div>
                 <button class="modal-btn reset-btn-small" onclick="resetGame()">🔄 Сыграть еще раз</button>
@@ -590,7 +596,7 @@
             const i=document.createElement('div'); i.className='falling-item';
             const isBad = Math.random() < 0.3;
             const goodImgs = ['img/good1.png', 'img/good2.png', 'img/good3.png', 'img/good4.png', 'img/good5.png', 'img/good6.png', 'img/good7.png', 'img/good8.png'];
-            const badImgs = ['img/bad1.png', 'img/bad1.png'];
+            const badImgs = ['img/bad1.png', 'img/bad2.png'];
             i.style.backgroundImage = `url('${isBad ? badImgs[Math.floor(Math.random()*badImgs.length)] : goodImgs[Math.floor(Math.random()*goodImgs.length)]}')`;
             const maxX = a.clientWidth - 85; i.style.left = Math.random() * maxX + 'px';
             i.onmousedown = i.ontouchstart = (e) => { e.preventDefault(); 
