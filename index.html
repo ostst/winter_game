@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
-    <title>Winter Quest: Final Russian</title>
+    <title>Winter Quest: Final Perfect Flow</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@700&family=Ruslan+Display&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
@@ -177,7 +177,21 @@
         #garland-container { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 10; pointer-events: none; }
         .garland-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: top center; background-repeat: no-repeat; }
         #garland-on { opacity: 0; transition: opacity 0.1s ease; } 
-        .falling-item { position: absolute; width: 85px; height: 85px; background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; top: -90px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); z-index: 5; touch-action: none; }
+        
+        /* ИСПРАВЛЕНИЕ: БОЛЬШИЕ ЛОГОТИПЫ БЕЗ ТЕНЕЙ */
+        .falling-item { 
+            position: absolute; 
+            width: 110px; 
+            height: 110px; 
+            background-size: contain; 
+            background-repeat: no-repeat; 
+            background-position: center; 
+            cursor: pointer; 
+            top: -110px; 
+            z-index: 5; 
+            touch-action: none; 
+        }
+        
         #catch-score { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-family: 'Fredoka', sans-serif; pointer-events: none; z-index: 20; border: 1px solid rgba(255,255,255,0.3); }
         .boom-text { position: absolute; color: #ff7675; font-size: 28px; font-weight: 900; font-family: 'Fredoka', sans-serif; pointer-events: none; z-index: 50; text-shadow: 2px 2px 0 #fff; animation: boomAnim 0.5s forwards; }
         @keyframes boomAnim { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5) translateY(-20px); opacity: 0; } }
@@ -300,7 +314,7 @@
 
     <script>
         // --- ССЫЛКИ И НАСТРОЙКИ ---
-        const WINNER_VIDEO_LINK = 'https://kinescope.io/gDpMqhc4YMfD7EWu94s712'; 
+        const WINNER_VIDEO_LINK = 'https://kinescope.io/jPrHknR1UbkKMYZLk8pASn'; 
         const SHARE_LINK = 'https://t.me/WinterQuestBot';
         const TELEGRAM_CHANNEL_LINK = 'https://t.me/psb_academy'; 
         const WEBSITE_LINK = 'https://psb-academy.ru';
@@ -499,7 +513,7 @@
         let fallingInterval, fallingScore=0, fallingSpeed=1000; const TARGET_SCORE=20;
         const PUZZLE_IMAGE_URL="img/puzzle.png"; let puzzleState=[];
         
-        // ОБНОВЛЕННЫЙ СПИСОК ВОПРОСОВ (10 ШТ)
+        // ОБНОВЛЕННЫЙ СПИСОК ВОПРОСОВ (РУССКИЕ СЛОВА)
         const iceLevels = [
             {q:"Инструкция для ИИ?", a:"ПРОМТ"},
             {q:"Умный алгоритм?", a:"МОДЕЛЬ"},
@@ -581,10 +595,16 @@
                 <div style="font-size:50px; margin-top:15px">🎉</div>
                 <h2 style="color:#2980b9; margin-bottom: 5px;">Задания выполнены!</h2>
                 <p style="font-size:18px; color: #2d3436; line-height: 1.4;">Ты молодец! Все 5 конвертов собраны.<br><br>Теперь ступай в <b>Главное здание</b> (оно светится!) за своим призом! 🎁</p>
-                <button class="modal-btn" onclick="closeModal()">Понятно</button>
+                <button class="modal-btn" onclick="finishPreFinalAndLightUp()">Понятно</button>
             `;
             document.getElementById('modal').style.display="flex"; 
             tg.HapticFeedback.notificationOccurred('success');
+        }
+        
+        function finishPreFinalAndLightUp() {
+            closeModal();
+            // ЗАЖИГАЕМ СВЕТ ТОЛЬКО ПОСЛЕ ЗАКРЫТИЯ ОКНА
+            document.getElementById('main-zone').classList.add('completed');
         }
 
         function getGift() { tg.openLink(WINNER_VIDEO_LINK); }
@@ -596,8 +616,8 @@
             else if(d.type==="falling"){ fallingScore=0; fallingSpeed=1000; i.innerHTML=`<div class="modal-header-ribbon">Гирлянда</div>${descHtml}<div id="falling-game-area"><div id="catch-score">0/20</div><div id="garland-container"><img src="img/garland_off.png" class="garland-layer" id="garland-off"><img src="img/garland_on.png" class="garland-layer" id="garland-on"></div></div><button class="modal-btn error-btn" onclick="stopFallingGame()">Хватит ловить ❄️</button>`; startFallingGame(id); } 
             else if(d.type==="puzzle"){ 
                 // ДОБАВЛЕНА КНОПКА "СОБРАТЬ"
-                i.innerHTML=`<div class="modal-header-ribbon">Пазл</div>${descHtml}<div id="puzzle-area"></div>
-                <div style="display:flex; gap:10px; margin-top:10px;">
+                i.innerHTML=`<div class="modal-header-ribbon">Пазл</div>${descHtml}<div id="puzzle-area" style="position:relative;"></div>
+                <div id="puzzle-btns" style="display:flex; gap:10px; margin-top:10px;">
                     <button class="modal-btn share-btn" onclick="autoSolvePuzzle(${id})">🪄 Собрать</button>
                     <button class="modal-btn error-btn" onclick="closeModal()">Выйти</button>
                 </div>`; 
@@ -622,6 +642,7 @@
         // ПАЗЛ (СВАЙПЫ + БЕЗ ЗВУКА + ПОЛНАЯ КАРТИНКА + АВТОСБОР)
         // ----------------------
         let puzzleTouchStartX = 0; let puzzleTouchStartY = 0;
+        let puzzleWinTimer = null; // Таймер для сброса
 
         function initPuzzle(id){
             puzzleState=[0,1,2,3,4,5,6,7,8];let e=8;
@@ -642,15 +663,14 @@
         
         function autoSolvePuzzle(id) {
             if (completedHouses.size < 4) {
-                // СОЗДАЕМ ВСПЛЫВАЮЩЕЕ ОКНО ПРЯМО В ИГРЕ (НАДЕЖНЕЕ ALERT)
                 const pArea = document.getElementById('puzzle-area');
                 const existingMsg = document.getElementById('puzzle-warning');
                 if(existingMsg) return;
 
                 const msg = document.createElement('div');
                 msg.id = 'puzzle-warning';
-                msg.innerHTML = "Собери 4 конверта,<br>чтобы активировать магию! ✨";
-                msg.style.cssText = "position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); color:#d63031; display:flex; justify-content:center; align-items:center; text-align:center; font-weight:bold; font-family:'Fredoka',sans-serif; font-size:18px; z-index:100; border-radius:10px; animation:fadeIn 0.3s;";
+                msg.innerHTML = "Нужно собрать<br>4 конверта! ✉️";
+                msg.style.cssText = "position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); color:#d63031; display:flex; justify-content:center; align-items:center; text-align:center; font-weight:bold; font-family:'Fredoka',sans-serif; font-size:20px; z-index:100; border-radius:10px; padding:20px;";
                 
                 pArea.appendChild(msg);
                 
@@ -693,9 +713,19 @@
             if (puzzleState.every((v,k)=>v===k)) {
                 el.innerHTML = `<div style="width:100%; height:100%; background:url('${PUZZLE_IMAGE_URL}') no-repeat center/cover; border-radius:8px; box-shadow: 0 0 15px gold;"></div>`;
                 playSound('sfx-win');
-                // ЗАДЕРЖКА ПЕРЕД МОДАЛКОЙ (5 СЕКУНД)
-                setTimeout(() => {
-                    document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Ура!</div><div style="font-size:50px; margin: 20px 0;">🧩</div><h2 style="color:#2d3436;">Собрано!</h2><button class="modal-btn error-btn" onclick="winGame(${id})">Отлично!</button>`; 
+                
+                // 1. МЕНЯЕМ КНОПКИ НА "ЗАБРАТЬ КОНВЕРТ"
+                const btnContainer = document.getElementById('puzzle-btns'); 
+                if(btnContainer) {
+                    btnContainer.innerHTML = `<button class="modal-btn win-gift-btn" style="margin:0" onclick="claimPuzzleReward(${id})">Забрать конверт ✉️</button>`;
+                }
+
+                // 2. ЗАДЕРЖКА 5 СЕКУНД (НО ЕСЛИ НАЖМУТ КНОПКУ РАНЬШЕ - ОНА ОТМЕНИТСЯ)
+                puzzleWinTimer = setTimeout(() => {
+                    if(document.getElementById('modal').style.display !== 'none') {
+                         // ПОКАЗЫВАЕМ "ТЫ МОЛОДЕЦ" ТОЛЬКО ЕСЛИ КНОПКУ НЕ НАЖАЛИ
+                         document.getElementById('modal-inner').innerHTML = `<div class="modal-header-ribbon">Ура!</div><div style="font-size:50px; margin: 20px 0;">🧩</div><h2 style="color:#2d3436;">Собрано!</h2><button class="modal-btn error-btn" onclick="claimPuzzleReward(${id})">Отлично!</button>`; 
+                    }
                 }, 5000);
                 return;
             }
@@ -711,6 +741,16 @@
             });
         } 
         
+        // ФУНКЦИЯ ДЛЯ КНОПКИ "ЗАБРАТЬ КОНВЕРТ" (ИСПРАВЛЕННАЯ ЛОГИКА)
+        function claimPuzzleReward(id) {
+            // СБРАСЫВАЕМ ТАЙМЕР, ЧТОБЫ ОКНО "МОЛОДЕЦ" НЕ ВЫЛЕЗЛО ПОВЕРХ
+            if (puzzleWinTimer) clearTimeout(puzzleWinTimer);
+            // ЗАКРЫВАЕМ ТЕКУЩЕЕ ОКНО (ПАЗЛ) СРАЗУ
+            closeModal();
+            // ЗАПУСКАЕМ АНИМАЦИЮ
+            winGame(id, true); // true = skip closing modal inside winGame since we did it
+        }
+        
         function mT(i,id){ 
             let e=puzzleState.indexOf(8),n=getN(i); 
             if(n.includes(e)){ 
@@ -720,7 +760,15 @@
         }
 
         function initMemory(id){matchedCount=0;flippedCards=[];let c=[];memoryPairs.forEach(p=>{c.push({v:p.name,id:p.name});c.push({v:p.t,id:p.name});});c.sort(()=>Math.random()-0.5);const g=document.getElementById('memory-grid');g.innerHTML="";c.forEach(x=>{let d=document.createElement('div');d.className='mem-card';d.innerText=x.v;d.dataset.pid=x.id;d.onclick=()=>{if(flippedCards.length>=2||d.classList.contains('flipped'))return;d.classList.add('flipped');flippedCards.push(d);if(flippedCards.length===2){let c1=flippedCards[0],c2=flippedCards[1];if(c1.dataset.pid===c2.dataset.pid){ playSound('sfx-win'); setTimeout(()=>{c1.classList.add('matched');c2.classList.add('matched');flippedCards=[];matchedCount++;if(matchedCount===3)winGame(id);},500);}else{ setTimeout(()=>{c1.classList.remove('flipped');c2.classList.remove('flipped');flippedCards=[];},1000);}}};g.appendChild(d);});}
-        function winGame(id) { closeModal(); tg.HapticFeedback.notificationOccurred('success'); document.getElementById('b'+id).classList.add('completed'); playSound('sfx-win'); animateCertificate(id); }
+        
+        function winGame(id, skipClose) { 
+            if(!skipClose) closeModal(); 
+            tg.HapticFeedback.notificationOccurred('success'); 
+            document.getElementById('b'+id).classList.add('completed'); 
+            playSound('sfx-win'); 
+            animateCertificate(id); 
+        }
+        
         function animateCertificate(id){
             const h=document.getElementById('b'+id)||document.getElementById('main-zone'),f=document.getElementById('flying-item'),r=h.getBoundingClientRect(),t=document.getElementById('mini-'+id).getBoundingClientRect();
             f.style.display='block';f.style.transition='none';f.style.top=r.top+'px';f.style.left=r.left+'px';
@@ -730,10 +778,10 @@
                 document.getElementById('mini-'+id).classList.add('collected');
                 completedHouses.add(id);
                 saveProgress(); 
-                // ПОКАЗ МОДАЛКИ ВМЕСТО СТРЕЛКИ
+                
+                // СТРОГАЯ ОЧЕРЕДЬ: СНАЧАЛА АНИМАЦИЯ (УЖЕ ПРОШЛА), ПОТОМ ОКНО
                 if (completedHouses.size === 5) { 
-                    document.getElementById('main-zone').classList.add('completed'); 
-                    setTimeout(showPreFinalModal, 1000); 
+                    setTimeout(showPreFinalModal, 500); 
                 }
             },850);
         }
